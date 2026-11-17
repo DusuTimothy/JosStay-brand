@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="JosStay logo concept: a three-dimensional house inside a Plateau State map pin">
+  <title>JosStay — 3D house inside a Plateau map pin</title>
+  <desc>Concept vector. Deep Ocean pin shaped from an irregular Plateau-like outline, warm ivory inner field, an isometric house with a muted gold doorway light. Not a production master.</desc>
+
+  <!-- Warm ivory ground -->
+  <rect width="512" height="512" rx="96" fill="#F7F4ED"/>
+
+  <!-- Outer silhouette: irregular, map-like shoulders tapering to a pin point -->
+  <path d="M256 26 L320 44 L372 34 L414 82 L432 140 L420 196 L442 246 L410 306 L352 342 L306 400 L256 470 L206 400 L160 342 L102 306 L80 246 L102 196 L90 140 L108 82 L150 34 L202 44 Z"
+        fill="#173B4D"/>
+
+  <!-- Inner field: Plateau-like outline cut in ivory -->
+  <path d="M256 92 L306 106 L348 98 L378 134 L390 178 L380 222 L396 258 L370 302 L328 330 L292 378 L256 424 L220 378 L184 330 L142 302 L116 258 L132 222 L122 178 L134 134 L164 98 L206 106 Z"
+        fill="#F7F4ED"/>
+
+  <!-- Soft shadow under the house -->
+  <ellipse cx="256" cy="308" rx="74" ry="17" fill="#173B4D" opacity="0.12"/>
+
+  <!-- Isometric house: roof -->
+  <polygon points="256,148 330,192 256,228 182,192"
+           fill="#DCE7E0" stroke="#173B4D" stroke-width="3.5" stroke-linejoin="round"/>
+
+  <!-- Left wall -->
+  <polygon points="182,192 256,228 256,296 182,260"
+           fill="#F7F4ED" stroke="#173B4D" stroke-width="3.5" stroke-linejoin="round"/>
+
+  <!-- Right wall -->
+  <polygon points="256,228 330,192 330,260 256,296"
+           fill="#DCE7E0" stroke="#173B4D" stroke-width="3.5" stroke-linejoin="round"/>
+
+  <!-- Warm halo and doorway light -->
+  <circle cx="232" cy="252" r="20" fill="#B99A62" opacity="0.20"/>
+  <polygon points="219,236 245,250 245,283 219,269"
+           fill="#B99A62" stroke="#173B4D" stroke-width="3" stroke-linejoin="round"/>
+
+  <!-- Right-wall window -->
+  <polygon points="282,222 312,206 312,232 282,248"
+           fill="#173B4D"/>
+
+  <!-- Ridge detail -->
+  <line x1="256" y1="148" x2="256" y2="228" stroke="#173B4D" stroke-width="2.5" opacity="0.35"/>
+</svg>

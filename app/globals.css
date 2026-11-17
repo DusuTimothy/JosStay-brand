@@ -1,0 +1,278 @@
+@import "tailwindcss";
+
+/* ------------------------------------------------------------------
+   JosStay self-hosted type.
+   Both subsets are loaded because the Naira sign (U+20A6) lives in
+   latin-ext, not latin. Dropping latin-ext silently swaps ₦ to a
+   system fallback — which is a brand failure at the price.
+------------------------------------------------------------------ */
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("/fonts/inter-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6,
+    U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122,
+    U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("/fonts/inter-latin-ext.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7,
+    U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F,
+    U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F,
+    U+A720-A7FF;
+}
+@font-face {
+  font-family: "Plus Jakarta Sans";
+  font-style: normal;
+  font-weight: 200 800;
+  font-display: swap;
+  src: url("/fonts/pjs-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6,
+    U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122,
+    U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Plus Jakarta Sans";
+  font-style: normal;
+  font-weight: 200 800;
+  font-display: swap;
+  src: url("/fonts/pjs-latin-ext.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7,
+    U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F,
+    U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F,
+    U+A720-A7FF;
+}
+
+@theme {
+  /* ---------------- Brand: Plateau Pine (structural / trust) --------- */
+  --color-pine-50: #f0f7f4;
+  --color-pine-100: #dbede5;
+  --color-pine-200: #b8dbce;
+  --color-pine-300: #7fbfa9;
+  --color-pine-400: #4a9e85;
+  --color-pine-500: #2e816a;
+  --color-pine-600: #216754;
+  --color-pine-700: #1b5345;
+  --color-pine-800: #0b3d33;
+  --color-pine-900: #072b24;
+  --color-pine-950: #041a15;
+
+  /* ---------------- Brand: Electric Emerald (signal / energy) -------- */
+  --color-emerald-50: #ecfdf5;
+  --color-emerald-100: #d1fae5;
+  --color-emerald-200: #a7f3d0;
+  --color-emerald-300: #6ee7b7;
+  --color-emerald-400: #2fe392;
+  --color-emerald-500: #00d97e;
+  --color-emerald-600: #00b368;
+  --color-emerald-700: #047857;
+  --color-emerald-800: #065f46;
+  --color-emerald-900: #064e3b;
+
+  /* ---------------- Ink / neutral ------------------------------------ */
+  --color-obsidian: #0b0c0e;
+  --color-ink: #0b0c0e;
+  --color-surface: #ffffff;
+  --color-canvas: #fafafa;
+
+  /* ---------------- Status ------------------------------------------- */
+  --color-verified: #0b3d33;
+  --color-verified-soft: #ecfdf5;
+  --color-instant: #00d97e;
+  --color-unavailable: #a1a1aa;
+  --color-danger: #b42318;
+  --color-warning: #b54708;
+  --color-success: #047857;
+
+  /* ---------------- Channel: WhatsApp (functional only) -------------- */
+  --color-whatsapp: #25d366;
+  --color-whatsapp-ink: #075e54;
+  --color-whatsapp-soft: #e7f8ee;
+
+  /* ---------------- Type --------------------------------------------- */
+  --font-display: "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", sans-serif;
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    sans-serif;
+  --font-mono: ui-monospace, "SFMono-Regular", Menlo, monospace;
+
+  /* ---------------- Type scale (fluid) ------------------------------- */
+  --text-display-hero: clamp(2.75rem, 2rem + 4.2vw, 4.5rem);
+  --text-display-hero--line-height: 0.98;
+  --text-display-hero--letter-spacing: -0.035em;
+  --text-display-hero--font-weight: 800;
+
+  --text-display: clamp(2.25rem, 1.7rem + 2.6vw, 3.25rem);
+  --text-display--line-height: 1.04;
+  --text-display--letter-spacing: -0.03em;
+  --text-display--font-weight: 800;
+
+  --text-title: clamp(1.75rem, 1.4rem + 1.6vw, 2.25rem);
+  --text-title--line-height: 1.1;
+  --text-title--letter-spacing: -0.025em;
+  --text-title--font-weight: 700;
+
+  --text-section: clamp(1.375rem, 1.2rem + 0.8vw, 1.75rem);
+  --text-section--line-height: 1.2;
+  --text-section--letter-spacing: -0.02em;
+  --text-section--font-weight: 700;
+
+  --text-card: 1.125rem;
+  --text-card--line-height: 1.3;
+  --text-card--letter-spacing: -0.015em;
+  --text-card--font-weight: 650;
+
+  --text-body: 1rem;
+  --text-body--line-height: 1.6;
+
+  --text-body-sm: 0.9375rem;
+  --text-body-sm--line-height: 1.55;
+
+  --text-meta: 0.8125rem;
+  --text-meta--line-height: 1.45;
+
+  --text-badge: 0.6875rem;
+  --text-badge--line-height: 1;
+  --text-badge--letter-spacing: 0.06em;
+  --text-badge--font-weight: 700;
+
+  --text-price: 1.5rem;
+  --text-price--line-height: 1.1;
+  --text-price--letter-spacing: -0.03em;
+  --text-price--font-weight: 750;
+
+  /* ---------------- Radius ------------------------------------------- */
+  --radius-xs: 6px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-2xl: 16px;
+  --radius-3xl: 24px;
+  --radius-4xl: 32px;
+
+  /* ---------------- Elevation ---------------------------------------- */
+  --shadow-soft: 0 1px 2px rgba(11, 12, 14, 0.04),
+    0 1px 3px rgba(11, 12, 14, 0.03);
+  --shadow-raised: 0 1px 2px rgba(11, 12, 14, 0.05),
+    0 4px 12px -2px rgba(11, 12, 14, 0.06);
+  --shadow-float: 0 2px 6px -1px rgba(11, 12, 14, 0.06),
+    0 12px 28px -8px rgba(11, 12, 14, 0.14);
+  --shadow-overlay: 0 8px 20px -4px rgba(11, 12, 14, 0.12),
+    0 32px 64px -16px rgba(11, 12, 14, 0.22);
+  --shadow-focus: 0 0 0 4px rgba(0, 217, 126, 0.28);
+
+  /* ---------------- Motion ------------------------------------------- */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+
+  --animate-fade-up: fade-up 0.45s var(--ease-out-expo) both;
+  --animate-shimmer: shimmer 1.6s linear infinite;
+
+  @keyframes fade-up {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 10px, 0);
+    }
+    to {
+      opacity: 1;
+      transform: translate3d(0, 0, 0);
+    }
+  }
+  @keyframes shimmer {
+    from {
+      background-position: -200% 0;
+    }
+    to {
+      background-position: 200% 0;
+    }
+  }
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: var(--color-canvas);
+    color: var(--color-obsidian);
+    font-family: var(--font-sans);
+    font-size: var(--text-body);
+    line-height: var(--text-body--line-height);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    text-wrap: balance;
+    color: var(--color-obsidian);
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  /* Live prices must never shift width between 3 and 8 digits. */
+  .tabular {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1, "cv01" 1;
+  }
+
+  ::selection {
+    background-color: var(--color-emerald-200);
+    color: var(--color-pine-900);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-emerald-500);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@layer utilities {
+  .scrollbar-none {
+    scrollbar-width: none;
+  }
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+  .no-tap-highlight {
+    -webkit-tap-highlight-color: transparent;
+  }
+  /* GPU-only animation hint — used on every animated tile */
+  .will-transform {
+    will-change: transform;
+  }
+  .text-balance {
+    text-wrap: balance;
+  }
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+}

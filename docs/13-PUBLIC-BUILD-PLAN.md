@@ -27,7 +27,8 @@ Every day we:
 | Path | Purpose |
 |---|---|
 | `/home/timothy-dusu/josstay-brandbook` | Existing Next.js frontend — keep the UI/design system unchanged |
-| `/home/timothy-dusu/josstay-api` | New Express API service (created Day 2) |
+| `/home/timothy-dusu/josstay-brandbook/api` | Express API service inside the same repo |
+| `/home/timothy-dusu/josstay-brandbook/packages/shared` | Zod schemas and types shared by frontend and API |
 | `docs/14-BUILD-LOG.md` | The pickup point after every stage |
 
 Before writing any code, re-read `AGENTS.md` and the relevant guide under `node_modules/next/dist/docs/` in the frontend project, as required.
@@ -39,7 +40,7 @@ Before writing any code, re-read `AGENTS.md` and the relevant guide under `node_
 | Day | Date | Weekday | Stage | Build focus | Exit condition |
 |---|---|---|---|---|---|
 | 1 | 17 Nov | Tue | **0 — Docs locked** | All ten+ decision docs, logo concept, env key guide, this plan and the build log | Docs complete, decisions locked, no code touched |
-| 2 | 18 Nov | Wed | **1 — Foundation** | Read Next 16 docs; add `zod`; create sibling `josstay-api`; `.gitignore`, `.env.example`, shared `Hotel`/`Booking` types and Zod schemas | Frontend typecheck clean; API `/health` returns 200 |
+| 2 | 18 Nov | Wed | **1 — Foundation** | Done — see build log | Done — frontend/API typecheck clean, `GET /health` returned 200 |
 | 3 | 19 Nov | Thu | **2 — Demo data** | Remodel `lib/data.ts` into `Hotel` shape; 3–5 clearly labelled demo hotels; derived areas; verification and policy fields | Home and search render with new data; no component redesign |
 | 4 | 20 Nov | Fri | **3 — Truth on pages** | New home copy, trust strip, search box, verification panel, policy + deadline display, demo pills, AI question box UI. Confirm no phone in public data | Build clean; public-data test shows no hotel phone |
 | 5 | 21 Nov | Sat | **4 — Backend schema** | PostgreSQL tables and migrations from `02-BACKEND-ARCHITECTURE.md` §3; Redis client; `refunds` recovery fields | Migrations run locally; tables match the doc |
@@ -115,6 +116,7 @@ Rules: no "launched", no "live in Jos", no fake counts, no invented ratings, no 
 - Subaccount **verified before publish**.
 - Logo direction: 3D house inside Plateau map; `logo-concept.svg` is a concept, not a production master.
 - AI: grounded, typed output, human handoff, never touches money or policy.
+- Loading: skeleton-first streaming with route `loading.tsx`, Suspense for slow panels, inline action states and honest empty/error states.
 
 ---
 
@@ -123,8 +125,9 @@ Rules: no "launched", no "live in Jos", no fake counts, no invented ratings, no 
 **Scope:** commit application code plus a **curated set of core docs**. Working notes and transient files stay local.
 
 **Will be committed**
-- Application source: `app/`, `components/`, `lib/`, the new `josstay-api/` service, configs and `.gitignore`.
+- Application source: `app/`, `components/`, `lib/`, `api/`, `packages/`, configs and `.gitignore`.
 - Core docs: `BRAND-BOOK.md`, `AGENTS.md`, `docs/01` through `docs/14`, and `docs/logo-concept.svg` (the referenced design concept).
+- Empty `.env.example` placeholders at the frontend root and in `api/`.
 - No secrets: `.env.example` with empty placeholders is committed; real `.env` files never are.
 
 **Will NOT be committed**

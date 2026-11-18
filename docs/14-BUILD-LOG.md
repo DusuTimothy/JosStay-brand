@@ -9,7 +9,7 @@
 | Day | Date | Stage | Status | Post |
 |---|---|---|---|---|
 | 1 | 17 Nov | 0 — Docs locked | **Done** | #0 |
-| 2 | 18 Nov | 1 — Foundation | Pending | — |
+| 2 | 18 Nov | 1 — Foundation | **Done** | #1 |
 | 3 | 19 Nov | 2 — Demo data | Pending | — |
 | 4 | 20 Nov | 3 — Truth on pages | Pending | — |
 | 5 | 21 Nov | 4 — Backend schema | Pending | — |
@@ -74,14 +74,49 @@ Repo foundation — Zod schemas, shared types, API skeleton and the health check
 
 ## Day 2 — Wednesday 18 November 2026 · Stage 1: Foundation
 
-**Status:** Pending — fill in after the build.
+**Status:** Done
 
-**What we did** — pending.
+**What we did**
+- Read the Next.js 16 guidance in `node_modules/next/dist/docs/` for environment variables and `loading.tsx`, as required by `AGENTS.md`.
+- Added Zod 4.6.7 and a `@josstay/shared` file dependency to the frontend.
+- Created a shared package with validated schemas for email, policy template, verification status, hotel, public hotel, guest checkout, booking status, booking and area. Added `toPublicHotel()` so private hotel phone data is stripped before any guest-facing response.
+- Scaffolded the Express 5 API **inside this repo** at `api/` with ESM/NodeNext TypeScript, validated environment config, CORS, JSON parsing and `GET /health`.
+- Added a start guard that refuses to run when a Paystack key prefix disagrees with `PAYSTACK_ENV`.
+- Added empty `.env.example` files at the frontend root and in `api/`. No real secrets were created.
+- Updated the build plan and env guide so the API path is `api/` (not a sibling repo), and recorded the agreed loading pattern.
 
-**Files touched** — pending.
+**Files touched**
+`package.json`, `package-lock.json`, `.env.example`, `packages/shared/package.json`, `packages/shared/tsconfig.json`, `packages/shared/src/index.ts`, `api/package.json`, `api/package-lock.json`, `api/tsconfig.json`, `api/.env.example`, `api/src/env.ts`, `api/src/index.ts`, `api/src/server.ts`, `docs/12-ENVIRONMENT-KEYS.md`, `docs/13-PUBLIC-BUILD-PLAN.md`, `docs/14-BUILD-LOG.md`.
 
-**Verification** — pending.
+**Verification**
+- `npm run build:shared` → clean; emits `dist/index.js` and `dist/index.d.ts`.
+- `npm run typecheck` (frontend) → clean.
+- `cd api && npm install && npm run typecheck && npm run build` → clean.
+- Started the built API and called `GET /health` → HTTP 200 with `{"status":"ok","service":"josstay-api",...}`; all `integrations` flags were `false` because no keys are configured.
+- Schema check: `HotelSchema` has `phoneEncrypted`, `PublicHotelSchema` does not, and `toPublicHotel()` output has no `phoneEncrypted`.
+- Guard check: `sk_live_...` with `PAYSTACK_ENV=test` was rejected with the expected message.
+- No `.env` files, no secrets and no AI-authorship remarks in any added file.
 
-**Social post #1** — pending.
+**Social post #1**
+```text
+[Day 2 / building JosStay in public until 30 Nov]
 
-**Next pickup** — pending.
+The foundation is in place.
+
+What we shipped today:
+• Shared Zod schemas so the site and the API agree on what a hotel, a guest and a booking actually are.
+• A hard rule in code: public hotel data structurally excludes the phone number. There is no lazy endpoint that can accidentally send it.
+• An Express API in the same repo with a working /health check and config validation that refuses a test/live Paystack key mismatch.
+• Empty .env.example files. No real keys, no secrets committed.
+
+Why it matters:
+Most marketplace trust problems start as data-shape problems. If the phone number is not in the public shape, it cannot leak through a careless response.
+
+Still real / still demo:
+This is plumbing. No hotel is live, no booking can be made yet, and no payment keys are connected. The health check only proves the service boots.
+
+Tomorrow:
+Move the demo listing data into the new hotel shape — areas, policy templates and honest verification fields, still clearly labelled demo.
+```
+
+**Next pickup:** Day 3, Stage 2 — remodel `lib/data.ts` into the shared `Hotel` shape, 3–5 clearly labelled demo hotels, areas derived from hotel data, verification and policy fields. Keep every component and the design system unchanged; home and search must still render.

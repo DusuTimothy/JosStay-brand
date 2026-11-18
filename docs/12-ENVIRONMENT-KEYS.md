@@ -1,6 +1,6 @@
 # JosStay — Environment Keys and How to Get Each Value
 
-**Status:** Documentation only. **No `.env` files have been created or committed.**
+**Status:** No real `.env` files are present or committed. `.env.example` files with empty placeholders exist at the frontend root and in `api/`.
 **Date:** 17 November 2026
 **Related:** `02-BACKEND-ARCHITECTURE.md`, `05-PRODUCTION-CHECKLIST.md`, `11-PAYSTACK-SPLIT-REFUND-CONFIRMATION.md`
 
@@ -108,7 +108,7 @@ Local file: `josstay-brandbook/.env.local`. Production: Vercel dashboard.
 
 # Part B — Backend keys (Express / Render)
 
-Local file: `josstay-api/.env`. Production: Render dashboard. **All of these are secret unless stated otherwise.**
+Local file: `api/.env`. Production: Render dashboard. **All of these are secret unless stated otherwise.**
 
 ## 1. Application
 
@@ -296,7 +296,7 @@ Local file: `josstay-api/.env`. Production: Render dashboard. **All of these are
 2. `npm run dev` serves on port 4300.
 
 **Local backend**
-1. Copy the backend list into `josstay-api/.env`.
+1. Copy the backend list into `api/.env`.
 2. Use Paystack test keys only.
 
 **Vercel**

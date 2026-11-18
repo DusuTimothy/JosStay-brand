@@ -5,7 +5,7 @@ import type { AddressInfo } from "node:net";
 import { closePool, getModels } from "../db/client.js";
 import { createApp } from "../index.js";
 import { getBookingByReference } from "../booking/service.js";
-import type { ConfirmationMessage, NotificationClient } from "../notifications/types.js";
+import type { NotificationClient, NotificationMessage } from "../notifications/types.js";
 import type {
   InitializePaymentInput,
   PaymentClient,
@@ -72,7 +72,7 @@ async function main(): Promise<void> {
   const verifiedAt = new Date();
 
   const captured: InitializePaymentInput[] = [];
-  const capturedNotifications: ConfirmationMessage[] = [];
+  const capturedNotifications: NotificationMessage[] = [];
   const fakeNotifications: NotificationClient = {
     async send(message) {
       capturedNotifications.push(message);
@@ -85,6 +85,9 @@ async function main(): Promise<void> {
         authorizationUrl: "https://checkout.paystack.test/mock/session",
         reference: input.reference,
       };
+    },
+    async refund() {
+      throw new Error("Refund provider must not be called in payment verification");
     },
   };
 
@@ -318,7 +321,10 @@ async function main(): Promise<void> {
     assert.equal((replay.body as { idempotent: boolean }).idempotent, true);
     assert.equal((await getBookingByReference(firstReference)).status, "confirmed");
     const actionsAfterReplay = (
-      await models.AuditLog.findAll({ where: { entityId: confirmedRecord.id } })
+      await models.AuditLog.findAll({
+        where: { entityId: confirmedRecord.id },
+        order: [["id", "ASC"]],
+      })
     ).map((row) => row.get("action"));
     assert.deepEqual(actionsAfterReplay, actionsBeforeReplay);
     assert.equal(capturedNotifications.length, 3);

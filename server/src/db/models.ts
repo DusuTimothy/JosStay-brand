@@ -217,6 +217,11 @@ export function defineModels(sequelize: Sequelize) {
         defaultValue: 0,
       },
       paystackRefundId: { type: DataTypes.TEXT, field: "paystack_refund_id", unique: true },
+      idempotencyKey: {
+        type: DataTypes.TEXT,
+        field: "idempotency_key",
+        unique: true,
+      },
       status: {
         type: DataTypes.ENUM("initiated", "processing", "completed", "failed"),
         allowNull: false,

@@ -2,6 +2,7 @@ import { Router } from "express";
 import type { NotificationClient } from "../notifications/types.js";
 import type { PaymentClient } from "../payment/client.js";
 import { createPaymentRouter } from "../payment/routes.js";
+import { createRefundRouter } from "../refund/routes.js";
 import { getAvailability } from "./availability-route.js";
 import { getReceipt, postBooking } from "./booking-route.js";
 import { getHotel, listAreas, listHotels } from "./catalog.js";
@@ -26,6 +27,7 @@ export function createApiRouter(
   router.use(readRouter);
   router.use(writeRouter);
   router.use(createPaymentRouter(paymentClient, notificationClient));
+  router.use(createRefundRouter(paymentClient, notificationClient));
   return router;
 }
 

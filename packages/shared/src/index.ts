@@ -100,6 +100,87 @@ export const RecoveryStatusSchema = z.enum([
 ]);
 export type RecoveryStatus = z.infer<typeof RecoveryStatusSchema>;
 
+export const BookingReferenceSchema = z
+  .string()
+  .trim()
+  .regex(/^JS-[A-Z0-9]+$/, "Use a JosStay booking reference");
+
+export const RefundReasonCodeSchema = z.enum([
+  "guest_cancellation",
+  "hotel_cancellation",
+  "admin_override",
+]);
+export type RefundReasonCode = z.infer<typeof RefundReasonCodeSchema>;
+
+/** Payout state is supplied by internal reconciliation, never by a guest form. */
+export const HotelPayoutStateSchema = z.enum(["held_by_paystack", "paid_out"]);
+export type HotelPayoutState = z.infer<typeof HotelPayoutStateSchema>;
+
+export const RefundRequestSchema = z
+  .object({
+    bookingReference: BookingReferenceSchema,
+    reasonCode: RefundReasonCodeSchema,
+    initiatedBy: z.string().trim().min(2).max(120).default("admin-console"),
+    note: z.string().trim().max(500).optional(),
+    hotelPayoutState: HotelPayoutStateSchema.default("held_by_paystack"),
+  })
+  .strict();
+export type RefundRequest = z.infer<typeof RefundRequestSchema>;
+
+export const GUEST_REFUND_MESSAGE =
+  "Refund initiated. Banks usually show the amount within 3–10 business days.";
+
+/** Guest-facing refund state. Splits, fees and recovery stay internal. */
+export const RefundViewSchema = z
+  .object({
+    id: z.string().uuid(),
+    bookingReference: BookingReferenceSchema,
+    amountKobo: z.number().int().positive(),
+    status: RefundStatusSchema,
+    guestMessage: z.literal(GUEST_REFUND_MESSAGE),
+    initiatedAt: z.coerce.date(),
+  })
+  .strict();
+export type RefundView = z.infer<typeof RefundViewSchema>;
+
+export const RecoveryQueueQuerySchema = z
+  .object({
+    status: z.enum(["open", "recovering", "all"]).default("open"),
+    aged: z
+      .enum(["true", "false"])
+      .transform((value) => value === "true")
+      .optional(),
+  })
+  .strict();
+export type RecoveryQueueQuery = z.infer<typeof RecoveryQueueQuerySchema>;
+
+export const RecoveryActionSchema = z
+  .object({
+    action: z.enum(["notify", "mark_recovering", "mark_recovered", "write_off"]),
+    actor: z.string().trim().min(2).max(120),
+    amountKobo: z.number().int().positive().optional(),
+    note: z.string().trim().max(500).optional(),
+  })
+  .strict();
+export type RecoveryAction = z.infer<typeof RecoveryActionSchema>;
+
+export const RecoveryQueueItemSchema = z
+  .object({
+    id: z.string().uuid(),
+    bookingReference: BookingReferenceSchema,
+    hotelName: z.string().min(1),
+    refundStatus: RefundStatusSchema,
+    recoveryStatus: RecoveryStatusSchema,
+    hotelShareKobo: z.number().int().nonnegative(),
+    recoveredKobo: z.number().int().nonnegative(),
+    recoveryDueAt: z.coerce.date().nullable(),
+    recoveryNotifiedAt: z.coerce.date().nullable(),
+    aged: z.boolean(),
+    initiatedAt: z.coerce.date(),
+  })
+  .strict();
+export type RecoveryQueueItem = z.infer<typeof RecoveryQueueItemSchema>;
+
 /** Internal booking record. Guest-facing confirmation is a separate, reduced view. */
 export const BookingSchema = z.object({
   reference: z.string().min(1),
@@ -302,6 +383,72 @@ export function calculateBookingMoney(
   };
 }
 
+export type RefundQuoteInput = {
+  policyTemplate: PolicyTemplate;
+  checkIn: string;
+  policyDeadlineAt: Date;
+  totalKobo: number;
+  commissionKobo: number;
+  nights: number;
+  reasonCode: RefundReasonCode;
+  now?: Date;
+};
+
+export type RefundQuote = {
+  amountKobo: number;
+  commissionReversedKobo: number;
+  hotelShareKobo: number;
+};
+
+/**
+ * Refund amount follows the locked template snapshot. Hotel and admin cancels
+ * are always full; guest cancels use the deadline already stored on the
+ * booking so a later policy edit cannot change an existing stay.
+ */
+export function calculateRefundQuote(input: RefundQuoteInput): RefundQuote {
+  const { policyTemplate, checkIn, policyDeadlineAt, totalKobo, commissionKobo, nights } =
+    input;
+  if (
+    !Number.isInteger(totalKobo) ||
+    totalKobo <= 0 ||
+    !Number.isInteger(commissionKobo) ||
+    commissionKobo < 0 ||
+    commissionKobo > totalKobo ||
+    !Number.isInteger(nights) ||
+    nights <= 0
+  ) {
+    throw new Error("Invalid refund money inputs");
+  }
+
+  const now = input.now ?? new Date();
+  let amountKobo: number;
+
+  if (input.reasonCode !== "guest_cancellation" || now < policyDeadlineAt) {
+    amountKobo = totalKobo;
+  } else if (policyTemplate === "flexible") {
+    const firstNightKobo = Math.round(totalKobo / nights);
+    amountKobo = Math.max(0, totalKobo - firstNightKobo);
+  } else if (policyTemplate === "moderate") {
+    const twentyFourHoursBefore = calculatePolicyDeadline("flexible", checkIn);
+    amountKobo = now < twentyFourHoursBefore ? Math.round(totalKobo / 2) : 0;
+  } else {
+    amountKobo = 0;
+  }
+
+  // A full refund reverses the exact original split. Partial refunds reverse
+  // the commission in the same proportion as the guest's money.
+  const commissionReversedKobo =
+    amountKobo === totalKobo
+      ? commissionKobo
+      : Math.round((amountKobo * commissionKobo) / totalKobo);
+
+  return {
+    amountKobo,
+    commissionReversedKobo,
+    hotelShareKobo: amountKobo - commissionReversedKobo,
+  };
+}
+
 /** Guest checkout has no account: name, email, phone, dates, room and accepted terms. */
 export const CreateBookingSchema = z
   .object({
@@ -350,11 +497,6 @@ export const GuestBookingSchema = z.object({
   whatsappOptIn: z.boolean(),
 });
 export type GuestBooking = z.infer<typeof GuestBookingSchema>;
-
-export const BookingReferenceSchema = z
-  .string()
-  .trim()
-  .regex(/^JS-[A-Z0-9]+$/, "Use a JosStay booking reference");
 
 /**
  * The receipt page shape. It repeats the public address and map pin for

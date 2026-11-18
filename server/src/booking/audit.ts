@@ -6,6 +6,7 @@ export type AuditEntry = {
   actor: string;
   action: string;
   entityId: string;
+  entity?: string;
   before?: Record<string, unknown>;
   after?: Record<string, unknown>;
 };
@@ -20,7 +21,7 @@ export async function writeAudit(
     {
       actor: entry.actor,
       action: entry.action,
-      entity: "booking",
+      entity: entry.entity ?? "booking",
       entityId: entry.entityId,
       beforeState: entry.before ?? null,
       afterState: entry.after ?? null,

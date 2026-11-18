@@ -25,6 +25,7 @@
     "verify:booking": "npm run verify:booking -w @josstay/server",
     "verify:payments": "npm run verify:payments -w @josstay/server",
     "verify:guest": "npm run verify:guest -w @josstay/server",
+    "verify:refund": "npm run verify:refund -w @josstay/server",
     "verify:partner": "npm run verify:partner -w @josstay/client"
   },
   "devDependencies": {

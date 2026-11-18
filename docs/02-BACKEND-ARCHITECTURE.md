@@ -123,8 +123,11 @@ Transitions are server-side only. A browser redirect is **never** proof of payme
 - Paystack processing and transaction fees are **non-refundable**. **Decision: JosStay absorbs them** on refunded bookings and records the amount as `fee_lost_kobo`. Do not promise the guest a fee refund.
 - Guest-facing status is **"refund initiated"** until Paystack confirms. Paystack emails both JosStay and the guest; tell guests banks usually show the amount in **3–10 business days**.
 - Test full and partial refunds in test mode before launch, including the recovery-task path.
+- The refund request carries an internal `hotelPayoutState`: `held_by_paystack` or `paid_out`. It is supplied by operations/reconciliation, never by a guest form. `paid_out` opens a recovery task due after `REFUND_RECOVERY_DAYS`.
+- `fee_lost_kobo` stores the provider-reported non-refundable fee. The provider adapter records zero when the refund response does not expose a figure; settlement reconciliation must fill that gap before launch.
+- Refund responses contain only the amount, status, reference and approved guest wording. Splits, provider IDs, fees and recovery state are internal.
 
-**Reconciliation** — daily job comparing Paystack settlements to `bookings`, flagging open and aged refund-recovery tasks, and producing a payout report per hotel.
+**Reconciliation** — daily job comparing Paystack settlements to `bookings`, flagging open and aged refund-recovery tasks, and producing a payout report per hotel. Until that job lands, `hotelPayoutState` is a manual internal input.
 
 ---
 
@@ -150,6 +153,9 @@ POST   /api/bookings                      → hold + draft
 POST   /api/bookings/:id/pay              → Paystack URL
 POST   /api/webhooks/paystack             → verify + confirm
 POST   /api/bookings/:id/cancel
+POST   /api/refunds                       → policy quote + provider refund
+GET    /api/admin/refund-recovery         → open, aged or all recovery tasks
+POST   /api/admin/refund-recovery/:id/actions
 POST   /api/ai/search                     → natural language → validated filters
 POST   /api/ai/ask                        → grounded policy/booking Q&A
 POST   /api/chat-handoff                  → WhatsApp book-by-chat
@@ -157,7 +163,7 @@ GET    /api/admin/verifications
 POST   /api/admin/hotels/:id/publish
 ```
 
-The four `GET` routes, `POST /api/bookings`, `POST /api/payments/initialize` and `POST /api/webhooks/paystack` are live; the refund, messaging, AI and admin routes remain the build target. Bookings lock the room row and re-check availability inside one transaction. The webhook verifies the raw-body HMAC-SHA512 signature, rejects replays by `paystack_reference`, and confirms through that same lock. All inputs validated with **Zod**. All list queries parameterised — LLM output is never interpolated into SQL.
+The four `GET` routes, `POST /api/bookings`, `POST /api/payments/initialize`, `POST /api/webhooks/paystack` and the refund and recovery routes are live; the messaging, AI and full admin console remain the build target. Bookings lock the room row and re-check availability inside one transaction. The webhook verifies the raw-body HMAC-SHA512 signature, rejects replays by `paystack_reference`, and confirms through that same lock. Refunds lock the booking row, use a unique internal idempotency key, call the provider only after commit, and record the split reversal, lost fee and any recovery task in the same transaction. All inputs validated with **Zod**. All list queries parameterised — LLM output is never interpolated into SQL.
 
 ---
 

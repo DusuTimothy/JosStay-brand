@@ -71,6 +71,7 @@ const REQUIRED_COLUMNS: Record<string, string[]> = {
     "commission_reversed_kobo",
     "hotel_share_kobo",
     "paystack_refund_id",
+    "idempotency_key",
     "status",
     "initiated_by",
     "recovery_status",

@@ -17,7 +17,8 @@
     "verify:api": "tsx src/api/verify.ts",
     "verify:booking": "tsx src/booking/verify.ts",
     "verify:payments": "tsx src/payment/verify.ts",
-    "verify:guest": "tsx src/booking/verify-guest.ts"
+    "verify:guest": "tsx src/booking/verify-guest.ts",
+    "verify:refund": "tsx src/refund/verify.ts"
   },
   "dependencies": {
     "@josstay/shared": "file:../packages/shared",

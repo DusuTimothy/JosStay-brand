@@ -30,12 +30,33 @@ export type ConfirmationMessage =
   | GuestWhatsAppMessage
   | HotelEmailMessage;
 
+export type GuestRefundEmailMessage = {
+  kind: "guest-refund-email";
+  bookingReference: string;
+  to: string;
+  subject: string;
+  text: string;
+  hotelPhoneIncluded: false;
+};
+
+export type GuestRefundWhatsAppMessage = {
+  kind: "guest-refund-whatsapp";
+  bookingReference: string;
+  to: string;
+  text: string;
+  hotelPhoneIncluded: false;
+};
+
+export type RefundMessage = GuestRefundEmailMessage | GuestRefundWhatsAppMessage;
+
+export type NotificationMessage = ConfirmationMessage | RefundMessage;
+
 export type NotificationResult = {
-  sent: ConfirmationMessage["kind"][];
-  failed: ConfirmationMessage["kind"][];
-  skipped: ConfirmationMessage["kind"][];
+  sent: NotificationMessage["kind"][];
+  failed: NotificationMessage["kind"][];
+  skipped: NotificationMessage["kind"][];
 };
 
 export interface NotificationClient {
-  send(message: ConfirmationMessage): Promise<void>;
+  send(message: NotificationMessage): Promise<void>;
 }

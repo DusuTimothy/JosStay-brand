@@ -1,4 +1,8 @@
-import { nightsBetweenDates, type BookingStatus } from "@josstay/shared";
+import {
+  GUEST_REFUND_MESSAGE,
+  nightsBetweenDates,
+  type BookingStatus,
+} from "@josstay/shared";
 import type { PolicyTemplate } from "@josstay/shared";
 import { writeAudit } from "../booking/audit.js";
 import { getBookingByReference } from "../booking/service.js";
@@ -7,6 +11,7 @@ import { notificationClient } from "./client.js";
 import type {
   ConfirmationMessage,
   NotificationClient,
+  NotificationMessage,
   NotificationResult,
 } from "./types.js";
 
@@ -191,7 +196,7 @@ export async function buildConfirmationMessages(
 
 async function logNotification(
   bookingId: string,
-  kind: ConfirmationMessage["kind"],
+  kind: NotificationMessage["kind"],
   outcome: "sent" | "failed" | "skipped",
 ): Promise<void> {
   await withTransaction((transaction) =>
@@ -231,5 +236,56 @@ export async function notifyBookingConfirmed(
     result.skipped.push("hotel-email");
   }
 
+  return result;
+}
+
+/** Send the approved "refund initiated" wording after the refund is recorded. */
+export async function notifyRefundInitiated(
+  reference: string,
+  amountKobo: number,
+  client: NotificationClient = notificationClient,
+): Promise<NotificationResult> {
+  const booking = await getBookingByReference(reference);
+  const text = [
+    `Update on your JosStay booking ${booking.reference}.`,
+    `Refund amount: ${nairaFromKobo(amountKobo)} (all-in amount paid).`,
+    GUEST_REFUND_MESSAGE,
+    `Need help? Message JosStay: ${CHAT_URL}`,
+  ].join("\n");
+
+  const messages: NotificationMessage[] = [
+    {
+      kind: "guest-refund-email",
+      bookingReference: booking.reference,
+      to: booking.guestEmail,
+      subject: `Refund initiated for booking ${booking.reference}`,
+      text,
+      hotelPhoneIncluded: false,
+    },
+  ];
+
+  if (booking.whatsappOptIn) {
+    messages.push({
+      kind: "guest-refund-whatsapp",
+      bookingReference: booking.reference,
+      to: booking.guestPhone,
+      text,
+      hotelPhoneIncluded: false,
+    });
+  }
+
+  const result: NotificationResult = { sent: [], failed: [], skipped: [] };
+  for (const message of messages) {
+    try {
+      await client.send(message);
+      result.sent.push(message.kind);
+      await logNotification(booking.id, message.kind, "sent");
+    } catch {
+      result.failed.push(message.kind);
+      await logNotification(booking.id, message.kind, "failed");
+    }
+  }
+
+  if (!booking.whatsappOptIn) result.skipped.push("guest-refund-whatsapp");
   return result;
 }

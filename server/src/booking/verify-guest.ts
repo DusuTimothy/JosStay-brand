@@ -4,7 +4,7 @@ import type { Server } from "node:http";
 import type { AddressInfo } from "node:net";
 import { closePool, getModels } from "../db/client.js";
 import { createApp } from "../index.js";
-import type { ConfirmationMessage, NotificationClient } from "../notifications/types.js";
+import type { NotificationClient, NotificationMessage } from "../notifications/types.js";
 import type { InitializePaymentInput, PaymentClient } from "../payment/client.js";
 import { getBookingByReference } from "./service.js";
 
@@ -60,7 +60,7 @@ async function main(): Promise<void> {
   const phone = "+2348098765432";
   const hotelPhone = "+2348076543210";
 
-  const capturedNotifications: ConfirmationMessage[] = [];
+  const capturedNotifications: NotificationMessage[] = [];
   let failGuestEmail = false;
   const fakeNotifications: NotificationClient = {
     async send(message) {
@@ -76,6 +76,9 @@ async function main(): Promise<void> {
         authorizationUrl: "https://checkout.paystack.test/mock/session",
         reference: input.reference,
       };
+    },
+    async refund() {
+      throw new Error("Refund provider must not be called in guest verification");
     },
   };
 

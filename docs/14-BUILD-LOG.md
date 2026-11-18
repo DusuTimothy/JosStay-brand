@@ -20,7 +20,7 @@
 | 8 | 24 Nov | 7 — Paystack split | **Done** | #8 |
 | 9 | 25 Nov | 8 — Guest flow | **Done** | #9 |
 | 9b | 18 Nov | 8b — Partner dashboard (sample data) | **Done** | #10 |
-| 10 | 26 Nov | 9 — Money edge cases | Pending | — |
+| 10 | 26 Nov | 9 — Money edge cases | **Done** | #11 |
 | 11 | 27 Nov | 10 — AI for ease | Pending | — |
 | 12 | 28 Nov | 11 — Admin & verification | Pending | — |
 | 13 | 29 Nov | 12 — Rehearsal | Pending | — |
@@ -696,4 +696,56 @@ Stage 9 — refund edge cases: proportional commission reversal, lost Paystack f
 ```
 
 **Next pickup:** Day 10, Stage 9 — money edge cases. Add the refund API call, proportional commission reversal, `fee_lost_kobo`, the recovery task when the hotel has already been paid, and the admin recovery queue. Keep the partner dashboard on sample data until verified API reads and property-level authorization exist.
+
+---
+
+## Day 10 — Thursday 26 November 2026 · Stage 9: Money edge cases
+
+**Status:** Done
+
+**What we did**
+- Added shared refund contracts and a policy quote calculator. Guest cancellation follows the locked template snapshot; hotel and admin cancellations are full refunds. Partial refunds reverse the commission in the same proportion as the guest's money.
+- Added `POST /api/refunds`. It locks the booking row, writes the refund and audit rows inside one transaction, calls the payment provider only after commit, and updates the booking through the existing `confirmed → refund_pending → refunded` state machine.
+- Added a unique internal idempotency key on `refunds` via a Sequelize CLI migration. Repeating the same request returns the stored refund without a second provider call; a failed attempt can be retried with the same key.
+- Recorded `fee_lost_kobo`, `commission_reversed_kobo` and `hotel_share_kobo` on the refund row. Guest responses expose only the amount, status, reference and the approved wording; splits, provider IDs, fees and recovery state stay internal.
+- When `hotelPayoutState` is `paid_out`, JosStay fronts the guest refund and opens a recovery task due after `REFUND_RECOVERY_DAYS`. The state is an internal operations input until settlement reconciliation exists.
+- Added `GET /api/admin/refund-recovery` with `open`, `aged` and `all` views, plus `POST /api/admin/refund-recovery/:id/actions` for notify, recovering, recovered and write-off. Role checks and property scoping remain part of the Day 12 console.
+- Extended notification adapters with the approved guest refund message: “Refund initiated. Banks usually show the amount within 3–10 business days.” Email and opted-in WhatsApp payloads contain no hotel phone.
+- Added `npm run verify:refund` with throwaway Postgres, Redis and fake payment/notification clients. It covers full and partial refunds, flexible and moderate templates, proportional reversal, lost fees, recovery creation and aging, admin actions, idempotency, provider failure/retry and field safety.
+- Made the payment verifier's audit comparison explicitly ordered; its previous no-`ORDER BY` query was a latent flake.
+
+**Files touched**
+New: `server/src/refund/service.ts`, `server/src/refund/routes.ts`, `server/src/refund/verify.ts`, `server/migrations/20261126000000-refund-idempotency.cjs`.
+Changed: `packages/shared/src/index.ts`, `server/src/payment/client.ts`, `server/src/payment/verify.ts`, `server/src/booking/verify-guest.ts`, `server/src/booking/audit.ts`, `server/src/db/models.ts`, `server/src/db/verify-schema.ts`, `server/src/notifications/types.ts`, `server/src/notifications/client.ts`, `server/src/notifications/service.ts`, `server/src/api/routes.ts`, root `package.json`, `server/package.json`, `docs/02-BACKEND-ARCHITECTURE.md`, `docs/12-ENVIRONMENT-KEYS.md`, `docs/13-PUBLIC-BUILD-PLAN.md` and this file.
+
+**Verification**
+- Fresh throwaway PostgreSQL on port 55435 and Redis on port 6382 from the already-present `postgres:15` and `redis:latest` images. No credentials were written to the repo; no `.env` file was created.
+- `npm run migrate` → three migrations applied, including the new refund idempotency migration.
+- `npm run verify:refund` → passed on four consecutive runs with a throwaway `sk_test_` key and fake providers: “Refunds verified (policy amounts, proportional reversal, fee loss, recovery queue, retry, privacy).”
+- `npm run verify:db`, `verify:models`, `verify:cache`, `verify:api`, `verify:booking`, `verify:payments`, `verify:guest` and `verify:partner` → all passed after the changes.
+- `npm run typecheck` and `npm run build` → clean in shared, client and server; Next.js compiled 32 pages.
+- No live Paystack call, real refund, real email or WhatsApp message was used. Where the provider does not report a non-refundable fee, the adapter records zero and reconciliation must fill the gap before launch.
+
+**Social post #11**
+```text
+[Day 10 / 30 Nov build-in-public]
+
+What we shipped today:
+• A refund path that follows the booking's locked cancellation template, not a guess made at refund time.
+• Full and partial refund maths with proportional commission reversal.
+• `fee_lost_kobo` recorded, plus a recovery task when the hotel's share has already been paid out.
+• An admin recovery queue with notify, recovering, recovered and write-off actions.
+• A repeatable fake-provider check covering policy amounts, idempotency, provider failure, retry and privacy.
+
+Why it matters:
+The hard part of a split payment is not taking the money. It is unwinding it honestly when plans change — especially when one side has already been paid. Now the money, the guest wording and the recovery work all have a recorded path.
+
+Still real / still demo:
+"Refund initiated. Banks usually show the amount within 3–10 business days." That wording is locked, but no real refund was sent. Ran on throwaway Postgres, Redis, a throwaway test key and fake providers. No hotel, guest, payout or recovery case is live. Hotel payout state is still entered internally, and admin login arrives with the Day 12 console.
+
+Tomorrow:
+Stage 10 — AI for ease: structured search filters, grounded policy answers and a human handoff, with no invented facts.
+```
+
+**Next pickup:** Day 11, Stage 10 — AI for ease. Add typed Zod filters from natural-language search, a grounded policy explainer and human handoff. Keep every answer inside locked policy and demo data; no admin auth or live money path yet.
 

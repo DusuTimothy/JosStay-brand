@@ -1,7 +1,7 @@
 import { env } from "../env.js";
-import type { ConfirmationMessage, NotificationClient } from "./types.js";
+import type { NotificationClient, NotificationMessage } from "./types.js";
 
-function redactedSummary(message: ConfirmationMessage): Record<string, unknown> {
+function redactedSummary(message: NotificationMessage): Record<string, unknown> {
   return {
     kind: message.kind,
     bookingReference: message.bookingReference,
@@ -11,7 +11,12 @@ function redactedSummary(message: ConfirmationMessage): Record<string, unknown> 
   };
 }
 
-async function sendEmail(message: Extract<ConfirmationMessage, { kind: "guest-email" | "hotel-email" }>) {
+async function sendEmail(
+  message: Extract<
+    NotificationMessage,
+    { kind: "guest-email" | "hotel-email" | "guest-refund-email" }
+  >,
+) {
   await fetch("https://api.brevo.com/v3/send", {
     method: "POST",
     headers: {
@@ -32,7 +37,12 @@ async function sendEmail(message: Extract<ConfirmationMessage, { kind: "guest-em
   });
 }
 
-async function sendWhatsApp(message: Extract<ConfirmationMessage, { kind: "guest-whatsapp" }>) {
+async function sendWhatsApp(
+  message: Extract<
+    NotificationMessage,
+    { kind: "guest-whatsapp" | "guest-refund-whatsapp" }
+  >,
+) {
   await fetch(
     `https://graph.facebook.com/${env.WHATSAPP_API_VERSION}/${env.WHATSAPP_PHONE_NUMBER_ID}/messages`,
     {
@@ -60,7 +70,7 @@ async function sendWhatsApp(message: Extract<ConfirmationMessage, { kind: "guest
  */
 export const notificationClient: NotificationClient = {
   async send(message) {
-    if (message.kind === "guest-whatsapp") {
+    if (message.kind === "guest-whatsapp" || message.kind === "guest-refund-whatsapp") {
       if (!env.WHATSAPP_ACCESS_TOKEN || !env.WHATSAPP_PHONE_NUMBER_ID) {
         console.info("[notification:suppressed]", JSON.stringify(redactedSummary(message)));
         throw new Error("WhatsApp provider is not configured");

@@ -47,6 +47,11 @@ export const errorHandler: ErrorRequestHandler = (error, _request, response, _ne
     return;
   }
 
+  if (error instanceof SyntaxError && (error as { status?: number }).status === 400) {
+    response.status(400).json({ error: "Invalid JSON" });
+    return;
+  }
+
   if (error instanceof Error && error.message.includes("DATABASE_URL is not set")) {
     response.status(503).json({ error: "Database is not configured" });
     return;

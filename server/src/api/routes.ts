@@ -1,4 +1,6 @@
 import { Router } from "express";
+import type { PaymentClient } from "../payment/client.js";
+import { createPaymentRouter } from "../payment/routes.js";
 import { getAvailability } from "./availability-route.js";
 import { postBooking } from "./booking-route.js";
 import { getHotel, listAreas, listHotels } from "./catalog.js";
@@ -14,7 +16,12 @@ export const writeRouter = Router();
 
 writeRouter.post("/bookings", postBooking);
 
-export const apiRouter = Router();
+export function createApiRouter(paymentClient?: PaymentClient): Router {
+  const router = Router();
+  router.use(readRouter);
+  router.use(writeRouter);
+  router.use(createPaymentRouter(paymentClient));
+  return router;
+}
 
-apiRouter.use(readRouter);
-apiRouter.use(writeRouter);
+export const apiRouter = createApiRouter();

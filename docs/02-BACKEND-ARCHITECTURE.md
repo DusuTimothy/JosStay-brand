@@ -1,6 +1,6 @@
 # JosStay — Backend Architecture
 
-**Status:** Design locked. Stages 4–6 implement §3–§5 and the public read plus booking-create paths of §8; later sections remain the build target.
+**Status:** Design locked. Stages 4–7 implement §3–§6 and the public read, booking-create, payment and webhook paths of §8; refunds, messaging, AI and admin remain the build target.
 **Date:** 17 November 2026
 
 ---
@@ -156,7 +156,7 @@ GET    /api/admin/verifications
 POST   /api/admin/hotels/:id/publish
 ```
 
-The four `GET` routes and `POST /api/bookings` are live; the payment, webhook, AI and admin routes remain the build target. Bookings lock the room row and re-check availability inside one transaction. All inputs validated with **Zod**. All list queries parameterised — LLM output is never interpolated into SQL.
+The four `GET` routes, `POST /api/bookings`, `POST /api/payments/initialize` and `POST /api/webhooks/paystack` are live; the refund, messaging, AI and admin routes remain the build target. Bookings lock the room row and re-check availability inside one transaction. The webhook verifies the raw-body HMAC-SHA512 signature, rejects replays by `paystack_reference`, and confirms through that same lock. All inputs validated with **Zod**. All list queries parameterised — LLM output is never interpolated into SQL.
 
 ---
 

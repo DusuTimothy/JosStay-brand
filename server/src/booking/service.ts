@@ -189,89 +189,112 @@ export async function createBooking(input: CreateBooking): Promise<GuestBooking>
 }
 
 /** Payment is a server-side transition, never a browser redirect. */
+export async function beginPaymentInTransaction(
+  reference: string,
+  paystackReference: string | undefined,
+  transaction: Transaction,
+): Promise<StoredBooking> {
+  const models = getModels();
+  const booking = await models.Booking.findOne({
+    where: { reference },
+    transaction,
+  });
+  if (!booking) throw new HttpError(404, "Booking not found");
+
+  const from = booking.get("status") as BookingStatus;
+  assertBookingTransition(from, "payment_pending");
+  await booking.update(
+    {
+      status: "payment_pending",
+      ...(paystackReference ? { paystackReference } : {}),
+    },
+    { transaction },
+  );
+  const bookingId = booking.get("id") as string;
+  await writeAudit(transaction, {
+    actor: "payment.init",
+    action: "booking.payment_pending",
+    entityId: bookingId,
+    before: { status: from },
+    after: {
+      status: "payment_pending",
+      ...(paystackReference ? { paystackReference } : {}),
+    },
+  });
+  await writeAudit(transaction, {
+    actor: "payment.init",
+    action: "payment.initialized",
+    entityId: bookingId,
+    after: {
+      provider: "paystack",
+      ...(paystackReference ? { paystackReference } : {}),
+    },
+  });
+  return plain<StoredBooking>(booking);
+}
+
 export async function beginPayment(
   reference: string,
   paystackReference?: string,
 ): Promise<void> {
-  const models = getModels();
-
-  await withTransaction(async (transaction) => {
-    const booking = await models.Booking.findOne({
-      where: { reference },
-      transaction,
-    });
-    if (!booking) throw new HttpError(404, "Booking not found");
-
-    const from = booking.get("status") as BookingStatus;
-    assertBookingTransition(from, "payment_pending");
-    await booking.update(
-      {
-        status: "payment_pending",
-        ...(paystackReference ? { paystackReference } : {}),
-      },
-      { transaction },
-    );
-    await writeAudit(transaction, {
-      actor: "payment.init",
-      action: "booking.payment_pending",
-      entityId: booking.get("id") as string,
-      before: { status: from },
-      after: {
-        status: "payment_pending",
-        ...(paystackReference ? { paystackReference } : {}),
-      },
-    });
-  });
+  await withTransaction((transaction) =>
+    beginPaymentInTransaction(reference, paystackReference, transaction),
+  );
 }
 
 /**
  * Final confirmation re-checks availability inside the same transaction. The
  * booking's own hold is excluded from that check; every other hold counts.
+ * Exported in transactional form so the webhook can batch idempotency and
+ * confirmation atomically.
  */
+export async function confirmBookingInTransaction(
+  reference: string,
+  paystackReference: string,
+  transaction: Transaction,
+): Promise<StoredBooking> {
+  const models = getModels();
+  const booking = await models.Booking.findOne({
+    where: { reference },
+    transaction,
+  });
+  if (!booking) throw new HttpError(404, "Booking not found");
+
+  const record = plain<StoredBooking>(booking);
+  assertBookingTransition(record.status, "confirmed");
+
+  await lockRoom(record.roomId, transaction);
+  await assertRoomAvailable(record.roomId, record.checkIn, record.checkOut, {
+    transaction,
+    excludeBookingId: record.id,
+  });
+
+  await booking.update(
+    { status: "confirmed", paystackReference, expiresAt: null },
+    { transaction },
+  );
+  await models.Hold.destroy({
+    where: { bookingId: record.id },
+    transaction,
+  });
+  await writeAudit(transaction, {
+    actor: "payment.webhook",
+    action: "booking.confirmed",
+    entityId: record.id,
+    before: { status: record.status },
+    after: { status: "confirmed", paystackReference },
+  });
+
+  return plain<StoredBooking>(booking);
+}
+
 export async function confirmBooking(
   reference: string,
   paystackReference: string,
 ): Promise<StoredBooking> {
-  const models = getModels();
-  let confirmed: StoredBooking | undefined;
-
-  await withTransaction(async (transaction: Transaction) => {
-    const booking = await models.Booking.findOne({
-      where: { reference },
-      transaction,
-    });
-    if (!booking) throw new HttpError(404, "Booking not found");
-
-    const record = plain<StoredBooking>(booking);
-    assertBookingTransition(record.status, "confirmed");
-
-    await lockRoom(record.roomId, transaction);
-    await assertRoomAvailable(record.roomId, record.checkIn, record.checkOut, {
-      transaction,
-      excludeBookingId: record.id,
-    });
-
-    await booking.update(
-      { status: "confirmed", paystackReference, expiresAt: null },
-      { transaction },
-    );
-    await models.Hold.destroy({
-      where: { bookingId: record.id },
-      transaction,
-    });
-    await writeAudit(transaction, {
-      actor: "payment.webhook",
-      action: "booking.confirmed",
-      entityId: record.id,
-      before: { status: record.status },
-      after: { status: "confirmed", paystackReference },
-    });
-
-    confirmed = plain<StoredBooking>(booking);
-  });
-
-  if (!confirmed) throw new Error("Confirmation transaction did not return a booking");
-  return confirmed;
+  return withTransaction((transaction) =>
+    confirmBookingInTransaction(reference, paystackReference, transaction),
+  );
 }
 
 /** Runnable by the every-minute job. Safe to call concurrently. */
@@ -315,9 +338,12 @@ export async function expireStaleHolds(now: Date = new Date()): Promise<number> 
 }
 
 /** Internal lookup for jobs and verification — not a guest-facing route. */
-export async function getBookingByReference(reference: string): Promise<StoredBooking> {
+export async function getBookingByReference(
+  reference: string,
+  transaction?: Transaction,
+): Promise<StoredBooking> {
   const models = getModels();
-  const booking = await models.Booking.findOne({ where: { reference } });
+  const booking = await models.Booking.findOne({ where: { reference }, transaction });
   if (!booking) throw new HttpError(404, "Booking not found");
   return plain<StoredBooking>(booking);
 }

@@ -22,7 +22,8 @@
     "verify:models": "npm run verify:models -w @josstay/server",
     "verify:cache": "npm run verify:cache -w @josstay/server",
     "verify:api": "npm run verify:api -w @josstay/server",
-    "verify:booking": "npm run verify:booking -w @josstay/server"
+    "verify:booking": "npm run verify:booking -w @josstay/server",
+    "verify:payments": "npm run verify:payments -w @josstay/server"
   },
   "devDependencies": {
     "typescript": "5.9.3"

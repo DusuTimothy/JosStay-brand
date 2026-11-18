@@ -21,6 +21,7 @@ export const EnvSchema = z
     REDIS_URL: z.string().min(1).optional(),
     PAYSTACK_SECRET_KEY: z.string().min(1).optional(),
     PAYSTACK_ENV: z.enum(["test", "live"]).default("test"),
+    PAYSTACK_API_BASE: z.url().default("https://api.paystack.co"),
     COMMISSION_BPS: z.coerce.number().int().min(0).max(10000).default(1000),
     HOLD_TTL_MINUTES: z.coerce.number().int().min(1).max(60).default(10),
     REFUND_RECOVERY_DAYS: z.coerce.number().int().min(1).max(90).default(7),

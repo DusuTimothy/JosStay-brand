@@ -17,7 +17,7 @@
 | 5b | 21 Nov | 4b — ORM correction | **Done** | #5b |
 | 6 | 22 Nov | 5 — Read API | **Done** | #6 |
 | 7 | 23 Nov | 6 — Booking core | **Done** | #7 |
-| 8 | 24 Nov | 7 — Paystack split | Pending | — |
+| 8 | 24 Nov | 7 — Paystack split | **Done** | #8 |
 | 9 | 25 Nov | 8 — Guest flow | Pending | — |
 | 10 | 26 Nov | 9 — Money edge cases | Pending | — |
 | 11 | 27 Nov | 10 — AI for ease | Pending | — |
@@ -516,4 +516,66 @@ Tomorrow:
 Paystack split — hosted checkout, signed webhook, idempotency, 10% commission stored, and confirmation through the lock we just built. Card, bank transfer and USSD stay on Paystack.
 ```
 
-**Next pickup:** Day 8, Stage 7 — Paystack split. Add `POST /api/payments/initialize` using hosted checkout with card, bank transfer and USSD; verify the webhook signature and reject replays by `paystack_reference`; call `confirmBooking()` inside the webhook transaction; store the 10% commission and hotel share from the locked split. Use test keys only — no live key or real hotel yet.
+**Next pickup (superseded by the Day 8 entry below):** Day 8, Stage 7 — Paystack split. Add `POST /api/payments/initialize` using hosted checkout with card, bank transfer and USSD; verify the webhook signature and reject replays by `paystack_reference`; call `confirmBooking()` inside the webhook transaction; store the 10% commission and hotel share from the locked split. Use test keys only — no live key or real hotel yet.
+
+---
+
+## Day 8 — Tuesday 24 November 2026 · Stage 7: Paystack split checkout
+
+**Status:** Done
+
+**What we did**
+- Added `POST /api/payments/initialize`. It takes only a JosStay booking reference, creates a hosted Paystack checkout session and returns the authorization URL, amount, channel list and provider reference. Card data never touches our API — card, bank transfer and USSD stay on Paystack.
+- The split is configured from the locked 17 November decision: `subaccount` is the hotel's code, `bearer: "subaccount"` makes the hotel carry the Paystack fee, and `percentage_charge` is derived from `COMMISSION_BPS / 100` (10 at the fixed 1000 bps). No guest-facing service fee; the all-in amount is unchanged.
+- Added a publish gate: initialization refuses a hotel with no Paystack subaccount, or one whose subaccount has not been verified when `SUBACCOUNT_VERIFICATION_REQUIRED=true`. Verification status is an internal field, never returned to guests.
+- Added `POST /api/webhooks/paystack`. It verifies the `x-paystack-signature` header as HMAC-SHA512 of the exact raw request bytes using `PAYSTACK_SECRET_KEY`, compared with `timingSafeEqual`. Raw bytes are captured by `express.raw` before the JSON parser runs, so the signature covers the untouched payload. Invalid or missing signatures get 401; non-successful events are acknowledged and ignored.
+- A signed `charge.success` is the only proof of payment. The webhook checks the currency (NGN), the exact kobo amount against the booking, and that the provider reference matches the stored one before confirming.
+- Idempotency is enforced on `paystack_reference`: a duplicate delivery is acknowledged with `idempotent: true` and writes no second audit line or confirmation. The booking row is locked with `FOR UPDATE` and re-read after the lock, so two concurrent webhook deliveries cannot both confirm.
+- Confirmation goes through the Day 7 lock: `confirmBookingInTransaction()` re-checks availability inside the same transaction, excluding the booking's own hold, then confirms, clears expiry and deletes the hold. The payment and confirmation status changes share one transaction and audit trail.
+- Added shared schemas for payment init, the guest-facing payment response and the signed webhook envelope. The payment response contains no secret, subaccount code, commission figure, hotel phone or guest PII.
+- Made the payment provider injectable via `createApp({ paymentClient })`, so verification uses a fake client and never calls Paystack. Added `npm run verify:payments`.
+- Live Paystack documentation could not be fetched during this build (the docs endpoint returned 403). The request shape follows the locked 17 November decision and must be rechecked against current Paystack docs and the dashboard before launch.
+
+**Files touched**
+New: `server/src/payment/client.ts`, `server/src/payment/signature.ts`, `server/src/payment/service.ts`, `server/src/payment/routes.ts`, `server/src/payment/verify.ts`.
+Changed: `package.json`, `server/package.json`, `packages/shared/src/index.ts`, `server/src/env.ts`, `server/src/index.ts`, `server/src/api/routes.ts`, `server/src/api/errors.ts`, `server/src/booking/service.ts`, `docs/02-BACKEND-ARCHITECTURE.md`, `docs/12-ENVIRONMENT-KEYS.md` and this file.
+
+**Verification**
+- `npm run build:shared && npm run typecheck && npm run build` → clean in all three workspaces after two typecheck fixes.
+- Fresh throwaway PostgreSQL on port 55434 and Redis on port 6381. No credentials written to the repo; no `.env` file created.
+- `npm run migrate` → applied the schema; a second migrate → no migrations executed.
+- `npm run verify:db`, `verify:models`, `verify:cache`, `verify:api`, `verify:booking` → all passed.
+- `npm run verify:payments` with a throwaway `sk_test_` key → hosted init inputs, split fields, subaccount gate, signature rejection (bad + missing), ignored events, amount/currency checks, idempotent replay and field safety all passed. Repeated three times total with no flaky result.
+- API booted with database, Redis and Paystack unset: `GET /health` returned 200 with all integration flags false.
+- Verification rows removed; no secrets, `.env` files, build output or attribution notes staged.
+
+**Social post #8**
+```text
+[Day 8 / building JosStay in public until 30 Nov]
+
+A redirect is not a receipt. Now only a signed webhook confirms a booking.
+
+What shipped:
+• POST /api/payments/initialize returns a hosted Paystack checkout URL. Card, bank transfer and USSD stay on Paystack — no card data touches our API.
+• The 10% split is configured on the transaction: hotel subaccount, hotel bears the Paystack fee, our commission is a clean 10%. No guest-facing service fee.
+• A publish gate refuses any hotel whose Paystack subaccount is missing or unverified.
+• POST /api/webhooks/paystack verifies the HMAC-SHA512 signature over the exact raw bytes using timing-safe comparison. Bad or missing signature gets a 401.
+• Only a signed charge.success for the right reference, currency and exact amount confirms a booking.
+• Replays are acknowledged once and write no second confirmation or audit line. The booking row is locked so two deliveries cannot both confirm.
+• Confirmation runs through the same transaction and availability lock from Day 7 — payment does not bypass the hold rules.
+• A repeatable check covers the whole flow with a fake provider. No live key, no network call.
+
+Why it matters:
+Split payments are easy to demo and easy to get wrong. The important part is that money and status move together, exactly once, and only when the provider says so. That is what we built today.
+
+Still real / still demo:
+Ran against local throwaway Postgres, Redis and a throwaway test key. No live Paystack call. No hotel is onboarded. No real guest, real phone number or real payment exists. The four stays on the site remain invented and labelled demo.
+
+Caught in public:
+The verifier's own "missing signature" test passed a valid signature by mistake. Fixed — an unsigned webhook is now genuinely tested and rejected with a 401.
+
+Tomorrow:
+Guest flow — wire checkout and the booking receipt into the client, keep Book by chat visible, and show the confirmed address, map pin and hotel phone only after payment.
+```
+
+**Next pickup:** Day 9, Stage 8 — Guest flow. Wire the client to `POST /api/bookings` and `POST /api/payments/initialize`: dates and guests, all-in total, cancellation deadline, hosted Paystack redirect, and a booking receipt page that polls confirmation by reference. Show the exact address, map pin and hotel phone only after a confirmed booking; keep **Book by chat with JosStay** visible at every step. No card fields on our site.

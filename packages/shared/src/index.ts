@@ -350,3 +350,62 @@ export const GuestBookingSchema = z.object({
   whatsappOptIn: z.boolean(),
 });
 export type GuestBooking = z.infer<typeof GuestBookingSchema>;
+
+export const BookingReferenceSchema = z
+  .string()
+  .trim()
+  .regex(/^JS-[A-Z0-9]+$/, "Use a JosStay booking reference");
+
+export const InitializePaymentSchema = z
+  .object({
+    bookingReference: BookingReferenceSchema,
+  })
+  .strict();
+export type InitializePayment = z.infer<typeof InitializePaymentSchema>;
+
+export const PaymentChannelsSchema = z.array(z.enum(["card", "bank", "ussd"]));
+
+/** The only payment shape returned to a guest. No provider secret or payout data. */
+export const PaymentInitializationSchema = z.object({
+  bookingReference: BookingReferenceSchema,
+  paystackReference: z.string().min(1),
+  provider: z.literal("paystack"),
+  amountKobo: z.number().int().positive(),
+  authorizationUrl: z.url(),
+  channels: PaymentChannelsSchema,
+});
+export type PaymentInitialization = z.infer<typeof PaymentInitializationSchema>;
+
+/** Paystack signs the raw bytes with HMAC-SHA512 using the secret key. */
+export const PaystackWebhookEnvelopeSchema = z
+  .object({
+    event: z.string().min(1),
+    data: z
+      .object({
+        status: z.string().min(1),
+        reference: z.string().min(1).optional(),
+      })
+      .passthrough(),
+  })
+  .passthrough();
+
+export const PaystackChargeSuccessSchema = z
+  .object({
+    event: z.literal("charge.success"),
+    data: z
+      .object({
+        status: z.literal("success"),
+        reference: z.string().min(1),
+        amount: z.number().int().positive(),
+        currency: z.string().min(3),
+        metadata: z
+          .object({
+            bookingReference: BookingReferenceSchema,
+          })
+          .passthrough()
+          .optional(),
+      })
+      .passthrough(),
+  })
+  .passthrough();
+export type PaystackChargeSuccess = z.infer<typeof PaystackChargeSuccessSchema>;

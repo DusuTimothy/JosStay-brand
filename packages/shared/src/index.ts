@@ -127,3 +127,121 @@ export const AreaSchema = z.object({
   centreLng: z.number(),
 });
 export type Area = z.infer<typeof AreaSchema>;
+
+/** Calendar dates use YYYY-MM-DD everywhere in query strings. */
+export const DateOnlySchema = z
+  .string()
+  .regex(/^\d{4}-\d{2}-\d{2}$/, "Use YYYY-MM-DD")
+  .refine((value) => {
+    const date = new Date(`${value}T00:00:00.000Z`);
+    return !Number.isNaN(date.valueOf()) && date.toISOString().slice(0, 10) === value;
+  }, "Use a real calendar date");
+
+function todayISO(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function rejectPastDate(value: string, path: string[], ctx: z.RefinementCtx): void {
+  if (value < todayISO()) {
+    ctx.addIssue({
+      code: "custom",
+      path,
+      message: "Dates cannot be in the past",
+    });
+  }
+}
+
+export const DateRangePartsSchema = z
+  .object({
+    from: DateOnlySchema,
+    to: DateOnlySchema,
+  })
+  .superRefine((value, ctx) => {
+    if (value.to <= value.from) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["to"],
+        message: "Check-out must be after check-in",
+      });
+    }
+    rejectPastDate(value.from, ["from"], ctx);
+  });
+
+export const DatesParamSchema = z
+  .string()
+  .trim()
+  .regex(/^\d{4}-\d{2}-\d{2}:\d{4}-\d{2}-\d{2}$/, "Use YYYY-MM-DD:YYYY-MM-DD")
+  .transform((value) => {
+    const [from, to] = value.split(":");
+    return { from, to };
+  })
+  .pipe(DateRangePartsSchema);
+
+export const SlugSchema = z
+  .string()
+  .trim()
+  .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Use a lowercase slug");
+
+export const RoomIdSchema = z.string().uuid("Use a room UUID");
+
+export const HotelQuerySchema = z
+  .object({
+    area: z.string().trim().min(1).optional(),
+    dates: DatesParamSchema.optional(),
+    guests: z.coerce.number().int().min(1).max(8).optional(),
+    power: z.literal("24-7").optional(),
+    policy: PolicyTemplateSchema.optional(),
+  })
+  .strict()
+  .superRefine((value, ctx) => {
+    if (value.dates) rejectPastDate(value.dates.from, ["dates"], ctx);
+  });
+export type HotelQuery = z.infer<typeof HotelQuerySchema>;
+
+export const AvailabilityQuerySchema = z
+  .object({
+    from: DateOnlySchema,
+    to: DateOnlySchema,
+  })
+  .strict()
+  .superRefine((value, ctx) => {
+    if (value.to <= value.from) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["to"],
+        message: "Check-out must be after check-in",
+      });
+    }
+    rejectPastDate(value.from, ["from"], ctx);
+  });
+export type AvailabilityQuery = z.infer<typeof AvailabilityQuerySchema>;
+
+export const PublicRoomSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string().min(1),
+  bed: z.string().min(1),
+  sleeps: z.number().int().positive(),
+  ensuite: z.boolean(),
+});
+export type PublicRoom = z.infer<typeof PublicRoomSchema>;
+
+export const HotelDetailSchema = PublicHotelSchema.extend({
+  rooms: z.array(PublicRoomSchema),
+});
+export type HotelDetail = z.infer<typeof HotelDetailSchema>;
+
+export const AreaSummarySchema = AreaSchema.extend({
+  count: z.number().int().nonnegative(),
+  demo: z.boolean(),
+});
+export type AreaSummary = z.infer<typeof AreaSummarySchema>;
+
+export const AvailabilityResponseSchema = z.object({
+  roomId: z.string().uuid(),
+  from: DateOnlySchema,
+  to: DateOnlySchema,
+  nights: z.number().int().positive(),
+  totalInventory: z.number().int().nonnegative(),
+  available: z.number().int().nonnegative(),
+});
+export type AvailabilityResponse = z.infer<typeof AvailabilityResponseSchema>;

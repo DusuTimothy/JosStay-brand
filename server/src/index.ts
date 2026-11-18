@@ -1,5 +1,7 @@
 import cors from "cors";
 import express, { type Express } from "express";
+import { errorHandler } from "./api/errors.js";
+import { readRouter } from "./api/routes.js";
 import { allowedOrigins, env } from "./env.js";
 
 export function createApp(): Express {
@@ -23,6 +25,12 @@ export function createApp(): Express {
       },
     });
   });
+
+  app.use("/api", readRouter);
+  app.use("/api", (_request, response) => {
+    response.status(404).json({ error: "Not found" });
+  });
+  app.use(errorHandler);
 
   return app;
 }

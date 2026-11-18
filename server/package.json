@@ -13,7 +13,8 @@
     "migrate:status": "sequelize-cli db:migrate:status",
     "verify:db": "tsx src/db/verify-schema.ts",
     "verify:models": "tsx src/db/verify-models.ts",
-    "verify:cache": "tsx src/cache/verify.ts"
+    "verify:cache": "tsx src/cache/verify.ts",
+    "verify:api": "tsx src/api/verify.ts"
   },
   "dependencies": {
     "@josstay/shared": "file:../packages/shared",

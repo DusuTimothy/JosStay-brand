@@ -15,7 +15,7 @@
 | 4 | 20 Nov | 3 — Truth on pages | **Done** | #4 |
 | 5 | 21 Nov | 4 — Backend schema | **Done** | #5 |
 | 5b | 21 Nov | 4b — ORM correction | **Done** | #5b |
-| 6 | 22 Nov | 5 — Read API | Pending | — |
+| 6 | 22 Nov | 5 — Read API | **Done** | #6 |
 | 7 | 23 Nov | 6 — Booking core | Pending | — |
 | 8 | 24 Nov | 7 — Paystack split | Pending | — |
 | 9 | 25 Nov | 8 — Guest flow | Pending | — |
@@ -395,4 +395,63 @@ Tomorrow:
 Read API — GET hotels, a single hotel, areas and availability, with Zod-validated query params and no phone field in any public response.
 ```
 
-**Next pickup:** Day 6, Stage 5 — read API. Build `GET /api/hotels`, `GET /api/hotels/:slug`, `GET /api/areas` and `GET /api/availability/:roomId` with Zod-validated query params. Use `PUBLIC_HOTEL_ATTRIBUTES` on the Sequelize models so `phone_encrypted` can never leak; map results to the shared `PublicHotel` shape.
+**Next pickup (superseded by the Day 6 entry below):** Day 6, Stage 5 — read API. Build `GET /api/hotels`, `GET /api/hotels/:slug`, `GET /api/areas` and `GET /api/availability/:roomId` with Zod-validated query params. Use `PUBLIC_HOTEL_ATTRIBUTES` on the Sequelize models so `phone_encrypted` can never leak; map results to the shared `PublicHotel` shape.
+
+---
+
+## Day 6 — Sunday 22 November 2026 · Stage 5: Public read API
+
+**Status:** Done
+
+**What we did**
+- Mounted a read-only `/api` router with four routes: `GET /api/hotels`, `GET /api/hotels/:slug`, `GET /api/areas` and `GET /api/availability/:roomId`. Unknown `/api` paths return a JSON 404.
+- Added shared Zod schemas for query strings and responses: calendar dates, `YYYY-MM-DD:YYYY-MM-DD` range syntax, lowercase slugs, room UUIDs, hotel filters, public rooms, area summaries and availability. Every query and path parameter is validated before it reaches a model or SQL string, and unknown query keys are rejected.
+- Kept all reads on `status: "published"` hotels. Area, policy, guest count, date range and `power=24-7` filters intersect cleanly; a `24/7` badge only appears when the latest agent report has a passing status and `checks.power === true`.
+- Used `PUBLIC_HOTEL_ATTRIBUTES` for every hotel read and mapped results through `PublicHotelSchema`. Phone, payout, commission, agent identity, checks and full report fields are not selected, so they cannot leak. Hotel detail adds only public room id, name, bed, sleeps and ensuite.
+- Reused the documented availability formula from §4: half-open date ranges, confirmed/completed/no-show bookings consuming stock, unexpired holds counting until expiry, and front-desk blocks overlapping the range. The same SQL backs both the single-room endpoint and hotel date filtering.
+- Added consistent errors: 400 with field-level details for invalid input, 404 for missing hotel or room, 503 when the database is not configured, and a generic 500 that does not echo internals.
+- Added `npm run verify:api`. It writes throwaway area/hotel/room/verification/booking/hold/block rows, calls the real HTTP app, checks filters and private-field denial on every response, confirms available and sold-out date behaviour, then removes its rows.
+- The verifier caught two mistakes before commit: a test that expected a sold-out hotel to appear in a date-filtered list, and a PostgreSQL rule that forbids a `WHERE` clause from using a select-list alias. Both were fixed in code and the verifier now passes.
+
+**Files touched**
+New: `server/src/api/errors.ts`, `server/src/api/availability.ts`, `server/src/api/availability-route.ts`, `server/src/api/catalog.ts`, `server/src/api/routes.ts`, `server/src/api/verify.ts`.
+Changed: `package.json`, `server/package.json`, `packages/shared/src/index.ts`, `server/src/index.ts`, `docs/02-BACKEND-ARCHITECTURE.md` and this file.
+
+**Verification**
+- `npm run build:shared && npm run typecheck && npm run build` → clean in all three workspaces.
+- Fresh throwaway PostgreSQL on port 55433 and Redis on port 6380 from the already-present `postgres:15` and `redis:latest` images. No credentials were written to the repo; no `.env` file was created.
+- `npm run migrate` → applied `20261121000000-initial-schema.cjs`; `npm run migrate:status` → `up`; a second `npm run migrate` → no migrations executed.
+- `npm run verify:db` → all nine tables, five enum sets and one applied migration. `npm run verify:models` → public allow-list, internal phone read, bad-split rejection and rollback. `npm run verify:cache` → Redis round-trip.
+- `npm run verify:api` → filtered hotel list, sold-out exclusion, hotel detail rooms, area counts, availability counts, validation errors, 404s and no private keys or internal values in any public response.
+- API booted with database, Redis and Paystack unset: `GET /health` returned 200 with all three integration flags false.
+- No secrets, `.env` files, build output or attribution notes staged.
+
+**Social post #6**
+```text
+[Day 6 / building JosStay in public until 30 Nov]
+
+The guest API can now read the marketplace — and it cannot read the parts guests should never see.
+
+What shipped:
+• GET endpoints for hotel lists, one hotel, areas and room availability.
+• Zod-checked query strings: dates, area, guests, power, policy and room IDs. Unknown keys and bad dates get a clean 400.
+• Only published hotels appear. Every response uses an explicit public field allow-list.
+• Phone numbers, payout codes, commission fields, agent identity and full inspection reports are not selected at all — not hidden in the UI, absent from the response.
+• The 24/7 power badge is backed by the latest passing agent report. A claim without evidence does not publish as a badge.
+• Availability uses the documented formula: confirmed bookings, live holds and front-desk blocks all reduce stock.
+• A repeatable check writes throwaway data, calls the real HTTP routes, scans every response for private fields, then cleans up.
+
+Why it matters:
+A trust marketplace is mostly a boundary problem. Today that boundary is code, not a promise in a design file.
+
+Still real / still demo:
+The API ran against local throwaway services. No hotel is onboarded. No real phone number, photo, live key or guest booking exists. The four stays on the site are still invented and labelled demo.
+
+Caught in public:
+The verifier caught two mistakes today — a wrong expectation about a sold-out date range, and a PostgreSQL rule about select aliases. Both are fixed and the check passes.
+
+Tomorrow:
+Booking core — state machine, availability formula, 10-minute holds, row locking and cancellation deadline calculation. Two guests racing for the last room: the second must be blocked.
+```
+
+**Next pickup:** Day 7, Stage 6 — booking core. Implement `POST /api/bookings` with `draft` → `held` → `payment_pending`, 10-minute holds, row locking inside a transaction, the shared availability formula, and the cancellation policy deadline calculator. Then add a two-guest race test for the last room.

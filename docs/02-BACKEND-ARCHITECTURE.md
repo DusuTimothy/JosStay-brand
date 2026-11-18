@@ -1,6 +1,6 @@
 # JosStay — Backend Architecture
 
-**Status:** Design locked. Stage 4 implements §3; later sections remain the build target.
+**Status:** Design locked. Stages 4–5 implement §3 and the public read half of §8; later sections remain the build target.
 **Date:** 17 November 2026
 
 ---
@@ -156,7 +156,7 @@ GET    /api/admin/verifications
 POST   /api/admin/hotels/:id/publish
 ```
 
-All inputs validated with **Zod**. All list queries parameterised — LLM output is never interpolated into SQL.
+The four `GET` routes above are live; the `POST` and admin routes remain the build target. All inputs validated with **Zod**. All list queries parameterised — LLM output is never interpolated into SQL.
 
 ---
 

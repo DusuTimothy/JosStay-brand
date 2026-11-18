@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import {
   ArrowLeft,
+  ArrowRight,
   Camera,
   ClipboardCheck,
   Megaphone,
@@ -142,6 +143,13 @@ export default function ListPropertyPage() {
           <div className="mt-4">
             <PartnerForm />
           </div>
+          <Link
+            href="/partner"
+            className="mt-4 inline-flex items-center gap-1.5 text-[0.8125rem] font-semibold text-pine-800 underline-offset-4 hover:underline"
+          >
+            Preview the partner dashboard (sample data)
+            <ArrowRight className="size-3.5" aria-hidden="true" />
+          </Link>
         </div>
       </div>
 

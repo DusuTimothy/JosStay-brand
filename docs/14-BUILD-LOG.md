@@ -18,7 +18,8 @@
 | 6 | 22 Nov | 5 — Read API | **Done** | #6 |
 | 7 | 23 Nov | 6 — Booking core | **Done** | #7 |
 | 8 | 24 Nov | 7 — Paystack split | **Done** | #8 |
-| 9 | 25 Nov | 8 — Guest flow | Pending | — |
+| 9 | 25 Nov | 8 — Guest flow | **Done** | #9 |
+| 9b | 18 Nov | 8b — Partner dashboard (sample data) | **Done** | #10 |
 | 10 | 26 Nov | 9 — Money edge cases | Pending | — |
 | 11 | 27 Nov | 10 — AI for ease | Pending | — |
 | 12 | 28 Nov | 11 — Admin & verification | Pending | — |
@@ -639,4 +640,60 @@ The site still said the exact address was shared only after booking, and the dem
 Tomorrow:
 Harden the operational edges — inspect the first real hotel, wire true decryption for stored hotel phones, consent timestamps, email retries and the live-key checklist before anything goes public.
 ```
+
+---
+
+## Day 9b — Wednesday 18 November 2026 · Stage 8b: Partner dashboard with sample data
+
+**Status:** Done
+
+**What we did**
+- Built the hotel/partner dashboard now, with no dependency on a real hotel. Five working screens are live at `/partner`: overview, calendar, bookings, listing and payouts.
+- Added a one-file data boundary. `client/lib/partner-data.ts` owns a `PartnerDataSource` contract, schema-validated browser persistence and a reset action. `partnerDataSource` is the single swap point for verified data; no screen imports the sample snapshot.
+- Moved all invented records into `client/lib/partner-sample-data.ts` and defined the shared shape in `client/lib/partner-contract.ts`. Every screen sees the same `PartnerSnapshot` type whether the source is sample or verified.
+- Added a property switcher, sample-data banner, reset action and chat link in a shared partner shell. Local edits to room price, room status, blocks, policy template and house rules persist in this browser. Bookings and payouts stay read-only because their production source of truth is the booking engine and signed payment events.
+- Kept the privacy rules visible in the UI and in the data contract. The workspace holds guest names only: no guest phone, guest email or hotel phone. The public address and map pin remain public. CSV exports use explicit column allow-lists.
+- Wrote `docs/15-PARTNER-DASHBOARD-DESIGN.md` with the information architecture, screen designs, sample-data contract, privacy limits, states and the exact verified-data swap steps.
+- Added `npm run verify:partner`, a repeatable check for sample labelling, absent contact fields, exact 10% commission maths, payout reconciliation, block safety and adapter save/reset.
+- Added a direct preview link from the property-intake page. The dashboard is `noindex` and is not in the public header.
+
+**Files touched**
+New: `client/lib/partner-contract.ts`, `client/lib/partner-data.ts`, `client/lib/partner-view.ts`, `client/lib/partner-sample-data.ts`, `client/scripts/verify-partner.ts`, `client/components/partner/partner-data-provider.tsx`, `client/components/partner/partner-shell.tsx`, `client/components/partner/partner-ui.tsx`, `client/components/partner/screens/partner-overview.tsx`, `partner-calendar.tsx`, `partner-bookings.tsx`, `partner-listing.tsx`, `partner-payouts.tsx`, `client/app/partner/layout.tsx`, `client/app/partner/page.tsx`, `client/app/partner/calendar/page.tsx`, `client/app/partner/bookings/page.tsx`, `client/app/partner/listing/page.tsx`, `client/app/partner/payouts/page.tsx`, `docs/15-PARTNER-DASHBOARD-DESIGN.md`.
+Changed: root and client `package.json`, `package-lock.json`, `client/app/list-your-property/page.tsx`, `docs/13-PUBLIC-BUILD-PLAN.md` and this file.
+
+**Verification**
+- `npm run verify:partner` → "Partner dashboard verified (2 sample hotels, no contact fields, 10% maths, adapter save/reset)."
+- `npm run typecheck` → clean in shared, client and server after removing stale generated route types and re-exporting the snapshot type from the adapter.
+- `npm run build` → clean in all three workspaces. Next.js compiled 32 pages, including all five `/partner` routes.
+- Production server smoke test: `/partner`, `/partner/calendar`, `/partner/bookings`, `/partner/listing` and `/partner/payouts` each returned HTTP 200 with the sample-data banner present and no forbidden contact-field markers in the rendered HTML.
+- No real hotel, guest, payment, Paystack call, email or WhatsApp message was used. No secrets or build output staged.
+
+**Social post #10**
+```text
+[Day 9b / building JosStay in public until 30 Nov]
+
+The partner dashboard is built — with sample data, not promises.
+
+What shipped:
+• Five working screens: overview, calendar, bookings, listing and payouts.
+• Property switcher, sample banner, reset, month grid, blocks, filters, detail panel and CSV exports.
+• One data boundary. Every screen reads the same snapshot contract, so verified data later does not mean a redesign.
+• Room price, status, blocks, policy and house rules save in this browser. Bookings and payouts stay read-only because signed payment events own them.
+• No guest phone, guest email or hotel phone in the workspace or the exports. Address and map pin stay public, as locked.
+• A repeatable check covers the sample labels, 10% maths, payout reconciliation, block safety and adapter save/reset.
+
+Why it matters:
+A hotel should be able to see tomorrow, know what it needs to prepare, and check its money without a phone call. That workflow can be finished before the first real property exists — as long as every invented field is labelled and isolated.
+
+Still real / still demo:
+Two invented properties, invented guest names and dates, invented payouts, browser storage only. No real hotel, no real booking, no Paystack payout, no login yet. The verified-data swap is documented, not performed.
+
+Caught in public:
+The verifier first failed on top-level await in a CommonJS script. It is now wrapped in an explicit async entry point and passes on every run.
+
+Tomorrow:
+Stage 9 — refund edge cases: proportional commission reversal, lost Paystack fees, recovery when the hotel is already paid, and the admin recovery queue.
+```
+
+**Next pickup:** Day 10, Stage 9 — money edge cases. Add the refund API call, proportional commission reversal, `fee_lost_kobo`, the recovery task when the hotel has already been paid, and the admin recovery queue. Keep the partner dashboard on sample data until verified API reads and property-level authorization exist.
 

@@ -6,7 +6,8 @@
     "dev": "next dev -p 4300",
     "build": "next build",
     "start": "next start -p 4300",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "verify:partner": "tsx scripts/verify-partner.ts"
   },
   "dependencies": {
     "@josstay/shared": "file:../packages/shared",
@@ -26,6 +27,7 @@
     "typescript": "5.9.3",
     "@types/node": "22.18.12",
     "@types/react": "19.2.2",
-    "@types/react-dom": "19.2.1"
+    "@types/react-dom": "19.2.1",
+    "tsx": "^4.23.15"
   }
 }

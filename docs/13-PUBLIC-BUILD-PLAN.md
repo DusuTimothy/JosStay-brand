@@ -3,7 +3,7 @@
 **Status:** Active working schedule. Treat this as the build brief for every session.
 **Start:** Tuesday 17 November 2026 · **End:** Monday 30 November 2026
 **Companion:** `14-BUILD-LOG.md` — the living record. Always update it after a build.
-**Related:** `01-PRODUCT-PLAN.md` through `12-ENVIRONMENT-KEYS.md`
+**Related:** `01-PRODUCT-PLAN.md` through `15-PARTNER-DASHBOARD-DESIGN.md`
 
 ---
 
@@ -51,6 +51,7 @@ Before writing any code, re-read `client/AGENTS.md` and the relevant guide under
 | 7 | 23 Nov | Mon | **6 — Booking core** | Booking state machine, availability formula, holds with 10-min expiry, row locking, policy deadline calculator | Two guests racing for last room → second blocked |
 | 8 | 24 Nov | Tue | **7 — Paystack split** | Checkout init, 10% `percentage_charge`, `bearer: subaccount`, signed webhook verification, idempotency, confirm booking | Test split shows correct commission; webhook replay ignored |
 | 9 | 25 Nov | Wed | **8 — Guest flow** | Checkout page, receipt page/email/WhatsApp adapters, hotel phone emailed to the booked guest only (address + pin stay public everywhere), hotel confirmation email with booking details only, Book-by-chat link | Demo booking completes end to end in test mode or with adapters logging payloads |
+| 9b | 18 Nov | Wed | **8b — Partner dashboard (sample data)** | Complete five-screen hotel workspace built now with invented records behind one swappable adapter; design recorded in `15-PARTNER-DASHBOARD-DESIGN.md` | All screens render, local edits and reset work, no contact fields, typecheck/build/partner check clean |
 | 10 | 26 Nov | Thu | **9 — Money edge cases** | Refund API call, proportional commission reversal, `fee_lost_kobo`, recovery task when hotel already paid, admin recovery queue | Full + partial refund rehearsal passes with status "refund initiated" |
 | 11 | 27 Nov | Fri | **10 — AI for ease** | JSON-LD on hotel pages; question box → typed Zod filters; plain-English policy explainer; human handoff; guardrails from `03-AI-FOR-EASE.md` | 30 test queries reviewed; no invented facts |
 | 12 | 28 Nov | Sat | **11 — Admin & verification** | Agent report form, checklist, `Pass`/`Pass with notes`/`Fail`, publish gate incl. subaccount verification, audit log viewer | Only passed hotels can be published |
@@ -58,6 +59,11 @@ Before writing any code, re-read `client/AGENTS.md` and the relevant guide under
 | 14 | 30 Nov | Mon | **13 — Handover** | Final build log, production-readiness report, remaining external blockers, public recap post | Someone else can pick up from the log alone |
 
 Weekends are lighter (review, docs, adversarial testing) but still produce a log entry and a post.
+
+**Schedule change (18 Nov):** the hotel/partner dashboard was previously absent from this table and
+treated as a later concern. It is now built as stage 8b with sample data only. Nothing in that
+workspace waits for a real hotel. Verified data is a one-file adapter swap described in
+`15-PARTNER-DASHBOARD-DESIGN.md` §7. The admin/verification console remains at Day 12.
 
 ---
 
@@ -129,7 +135,7 @@ Rules: no "launched", no "live in Jos", no fake counts, no invented ratings, no 
 
 **Will be committed**
 - Application source: `client/`, `server/`, `packages/`, root `package.json` and `.gitignore`.
-- Core docs: `BRAND-BOOK.md`, `README.md`, `client/AGENTS.md`, `docs/01` through `docs/14`, and `docs/logo-concept.svg` (the referenced design concept).
+- Core docs: `BRAND-BOOK.md`, `README.md`, `client/AGENTS.md`, `docs/01` through `docs/15`, and `docs/logo-concept.svg` (the referenced design concept).
 - Empty `.env.example` placeholders in `client/` and `server/`.
 - No secrets: `.env.example` with empty placeholders is committed; real `.env` files never are.
 

@@ -245,3 +245,108 @@ export const AvailabilityResponseSchema = z.object({
   available: z.number().int().nonnegative(),
 });
 export type AvailabilityResponse = z.infer<typeof AvailabilityResponseSchema>;
+
+const MS_PER_DAY = 86_400_000;
+/** Nigeria local time is WAT (UTC+1). Deadline wording in the docs uses this zone. */
+const WAT_OFFSET_MS = 60 * 60 * 1000;
+
+function checkInInstant(checkIn: string): number {
+  const value = Date.parse(`${checkIn}T00:00:00+01:00`);
+  if (Number.isNaN(value)) throw new Error(`Invalid check-in date: ${checkIn}`);
+  return value;
+}
+
+/** Half-open nights: [check-in, check-out). Both arguments are YYYY-MM-DD. */
+export function nightsBetweenDates(checkIn: string, checkOut: string): number {
+  const start = checkInInstant(checkIn);
+  const end = checkInInstant(checkOut);
+  const nights = Math.round((end - start) / MS_PER_DAY);
+  if (nights <= 0) throw new Error("Check-out must be after check-in");
+  return nights;
+}
+
+/**
+ * The three locked cancellation templates. Flexible and moderate are anchored
+ * to the check-in date in WAT; strict is anchored to the moment of booking.
+ * A null result would mean "no fixed calendar date", which strict no longer
+ * has once a booking exists.
+ */
+export function calculatePolicyDeadline(
+  template: PolicyTemplate,
+  checkIn: string,
+  bookedAt: Date = new Date(),
+): Date {
+  switch (template) {
+    case "flexible":
+      return new Date(checkInInstant(checkIn) - 24 * 60 * 60 * 1000);
+    case "moderate":
+      return new Date(checkInInstant(checkIn) - 72 * 60 * 60 * 1000);
+    case "strict":
+      return new Date(bookedAt.getTime() + 24 * 60 * 60 * 1000);
+  }
+}
+
+/** All-in guest total, with the fixed platform commission calculated from basis points. */
+export function calculateBookingMoney(
+  nightlyKobo: number,
+  nights: number,
+  commissionBps = 1000,
+): { nights: number; totalKobo: number; commissionKobo: number; hotelShareKobo: number } {
+  const totalKobo = nightlyKobo * nights;
+  const commissionKobo = Math.round((totalKobo * commissionBps) / 10_000);
+  return {
+    nights,
+    totalKobo,
+    commissionKobo,
+    hotelShareKobo: totalKobo - commissionKobo,
+  };
+}
+
+/** Guest checkout has no account: name, email, phone, dates, room and accepted terms. */
+export const CreateBookingSchema = z
+  .object({
+    guestName: z.string().trim().min(2).max(120),
+    guestEmail: EmailSchema,
+    guestPhone: z
+      .string()
+      .trim()
+      .regex(/^\+?[0-9][0-9\s-]{6,19}$/, "Use a valid phone number"),
+    hotelSlug: SlugSchema,
+    roomId: RoomIdSchema,
+    checkIn: DateOnlySchema,
+    checkOut: DateOnlySchema,
+    guests: z.number().int().min(1).max(8),
+    termsAccepted: z.literal(true, "Accept the terms to continue"),
+    whatsappOptIn: z.boolean().default(false),
+  })
+  .strict()
+  .superRefine((value, ctx) => {
+    if (value.checkOut <= value.checkIn) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["checkOut"],
+        message: "Check-out must be after check-in",
+      });
+    }
+    rejectPastDate(value.checkIn, ["checkIn"], ctx);
+  });
+export type CreateBooking = z.infer<typeof CreateBookingSchema>;
+
+/** The only booking shape returned to a guest. No hotel phone, payout or commission data. */
+export const GuestBookingSchema = z.object({
+  reference: z.string().min(1),
+  status: BookingStatusSchema,
+  hotelSlug: SlugSchema,
+  hotelName: z.string().min(1),
+  roomId: RoomIdSchema,
+  checkIn: DateOnlySchema,
+  checkOut: DateOnlySchema,
+  guests: z.number().int().positive(),
+  nights: z.number().int().positive(),
+  totalKobo: z.number().int().positive(),
+  policyTemplate: PolicyTemplateSchema,
+  policyDeadlineAt: z.coerce.date(),
+  holdExpiresAt: z.coerce.date(),
+  whatsappOptIn: z.boolean(),
+});
+export type GuestBooking = z.infer<typeof GuestBookingSchema>;

@@ -307,6 +307,7 @@ Local file: `server/.env`. Production: Render dashboard, service rooted at `serv
 3. Use `npm run migrate:status` to see which migrations are up or down, and `npm run migrate:undo` only for a deliberate local rollback.
 4. Run `npm run verify:db` to check tables, columns and enum values against the Stage 4 plan, then `npm run verify:models` to exercise the ORM models, public allow-list and money split constraint inside a rolled-back transaction.
 5. Set `REDIS_URL` and run `npm run verify:cache` for a set/get/delete round-trip.
+6. Run `npm run verify:api` for the public read routes and `npm run verify:booking` for the hold, race-lock and confirmation checks. Both write throwaway rows to the configured database and delete them on exit, so point them at a local throwaway database.
 
 Install once from the repo root: `npm install`. npm workspaces link `client`, `server` and `packages/shared` into a single `node_modules` and one lockfile.
 

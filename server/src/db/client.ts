@@ -46,6 +46,20 @@ export async function query<T>(
   return rows as T[];
 }
 
+/** Same query shape, but pinned to the caller's transaction for locks and atomicity. */
+export async function queryInTransaction<T>(
+  sql: string,
+  replacements: Record<string, unknown>,
+  transaction: Transaction,
+): Promise<T[]> {
+  const rows = await getSequelize().query(sql, {
+    replacements,
+    transaction,
+    type: QueryTypes.SELECT,
+  });
+  return rows as T[];
+}
+
 export async function withTransaction<T>(
   work: (transaction: Transaction) => Promise<T>,
 ): Promise<T> {

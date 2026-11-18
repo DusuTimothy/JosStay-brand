@@ -14,7 +14,8 @@
     "verify:db": "tsx src/db/verify-schema.ts",
     "verify:models": "tsx src/db/verify-models.ts",
     "verify:cache": "tsx src/cache/verify.ts",
-    "verify:api": "tsx src/api/verify.ts"
+    "verify:api": "tsx src/api/verify.ts",
+    "verify:booking": "tsx src/booking/verify.ts"
   },
   "dependencies": {
     "@josstay/shared": "file:../packages/shared",

@@ -16,7 +16,7 @@
 | 5 | 21 Nov | 4 — Backend schema | **Done** | #5 |
 | 5b | 21 Nov | 4b — ORM correction | **Done** | #5b |
 | 6 | 22 Nov | 5 — Read API | **Done** | #6 |
-| 7 | 23 Nov | 6 — Booking core | Pending | — |
+| 7 | 23 Nov | 6 — Booking core | **Done** | #7 |
 | 8 | 24 Nov | 7 — Paystack split | Pending | — |
 | 9 | 25 Nov | 8 — Guest flow | Pending | — |
 | 10 | 26 Nov | 9 — Money edge cases | Pending | — |
@@ -454,4 +454,66 @@ Tomorrow:
 Booking core — state machine, availability formula, 10-minute holds, row locking and cancellation deadline calculation. Two guests racing for the last room: the second must be blocked.
 ```
 
-**Next pickup:** Day 7, Stage 6 — booking core. Implement `POST /api/bookings` with `draft` → `held` → `payment_pending`, 10-minute holds, row locking inside a transaction, the shared availability formula, and the cancellation policy deadline calculator. Then add a two-guest race test for the last room.
+**Next pickup (superseded by the Day 7 entry below):** Day 7, Stage 6 — booking core. Implement `POST /api/bookings` with `draft` → `held` → `payment_pending`, 10-minute holds, row locking inside a transaction, the shared availability formula, and the cancellation policy deadline calculator. Then add a two-guest race test for the last room.
+
+---
+
+## Day 7 — Monday 23 November 2026 · Stage 6: Booking core
+
+**Status:** Done
+
+**What we did**
+- Added `POST /api/bookings`. It creates a `draft` booking, moves it to `held` in the same transaction, writes a durable hold row, and returns a guest-only receipt. Required guest data stays name, email, phone, dates, room and accepted terms — no account and no card fields on our site.
+- Put the room row under `SELECT ... FOR UPDATE` before the availability re-check, so two guests racing for the last room are serialised. The loser gets a clean 409, not a second confirmed reservation.
+- Added an explicit server-side state machine covering `draft` → `held` → `payment_pending` → `confirmed` → `completed`, plus the documented expired, failed, cancelled, no-show and refund paths. Invalid transitions are rejected with 409; a browser redirect never advances a booking.
+- Added shared pure functions for nights, all-in money split and the three locked cancellation deadlines. Flexible and moderate are anchored to the check-in date in WAT; strict is anchored to the moment of booking. The template and deadline are snapshotted on the booking, so a later hotel policy change cannot rewrite it.
+- Holds last `HOLD_TTL_MINUTES` (10 by default). `expireStaleHolds()` is safe to run repeatedly: it locks stale booking and hold rows, transitions them to `expired`, removes the holds and writes audit lines.
+- Added `beginPayment()` and `confirmBooking()` service functions for the Paystack work. Confirmation locks the room again, re-checks availability while excluding the booking's own hold, then stores the Paystack reference, clears expiry and deletes the hold. This is the "re-check inside one transaction" rule from §4.
+- Added audit lines for booking creation, hold creation, status changes, payment pending and confirmation. Every money or status change has a row with actor, before and after state.
+- The guest response uses a dedicated schema. It includes the reference, dates, nights, all-in total, policy deadline and hold expiry, but no hotel phone, payout code, commission amount, agent data or inspection internals.
+- Added `npm run verify:booking`. It races two guests for one room, checks the 201/409 split, verifies the 10-minute hold and WAT deadline, walks the booking through payment-pending and confirmation, proves a third request is blocked, tests expiry idempotence, checks all three deadline templates, audits and validation failures, then removes its own rows.
+
+**Files touched**
+New: `server/src/booking/state-machine.ts`, `server/src/booking/audit.ts`, `server/src/booking/service.ts`, `server/src/booking/verify.ts`, `server/src/api/booking-route.ts`.
+Changed: `package.json`, `server/package.json`, `packages/shared/src/index.ts`, `server/src/db/client.ts`, `server/src/api/availability.ts`, `server/src/api/routes.ts`, `server/src/index.ts`, `docs/02-BACKEND-ARCHITECTURE.md`, `docs/12-ENVIRONMENT-KEYS.md` and this file.
+
+**Verification**
+- `npm run build:shared && npm run typecheck && npm run build` → clean in all three workspaces.
+- Fresh throwaway PostgreSQL on port 55433 and Redis on port 6380 from the already-present `postgres:15` and `redis:latest` images. No credentials were written to the repo; no `.env` file was created.
+- `npm run migrate` → applied the schema; `npm run migrate:status` → up; a second migrate → no migrations executed.
+- `npm run verify:db`, `verify:models`, `verify:cache` and `verify:api` → all passed after one fix.
+- `npm run verify:booking` → race lock, hold, confirmation, expiry, deadline math, audit trail, private-field denial and validation all passed. Repeated three more times with no flaky result.
+- The first full run caught a missing `null` replacement binding in the shared availability query after the "exclude own hold" parameter was added. Fixed in `server/src/api/availability.ts`; the read API suite passed again.
+- API booted with database, Redis and Paystack unset: `GET /health` returned 200 with all integration flags false.
+- No secrets, `.env` files, build output or attribution notes staged.
+
+**Social post #7**
+```text
+[Day 7 / building JosStay in public until 30 Nov]
+
+Two guests, one room. The second one now gets a clean "no".
+
+What shipped:
+• POST /api/bookings creates a held booking with just the guest's name, email, phone, dates, room and accepted terms. No account. No card fields on our site.
+• The room row is locked before the availability check. Two guests racing for the last room cannot both win; the loser gets a 409.
+• A 10-minute hold is written as a durable row and can be expired by a repeatable job.
+• A server-side state machine controls draft → held → payment pending → confirmed. A browser redirect never confirms anything.
+• Cancellation deadlines are calculated from the locked templates and snapshotted on the booking. Flexible and moderate use the check-in date in WAT; strict uses the booking time.
+• Confirmation re-checks availability inside the same transaction, excluding the booking's own hold. The Paystack work can plug into that without weakening the rule.
+• Every status and money change writes an audit line.
+• A repeatable check races two guests, walks the winner through payment and confirmation, tests expiry and deadlines, then cleans up.
+
+Why it matters:
+Availability is not a number on a page. It is a promise backed by a lock, a hold and a transaction. That is the difference between "looks booked" and "is booked".
+
+Still real / still demo:
+Ran against local throwaway Postgres and Redis. No hotel is onboarded. No real guest, real phone number, live key or payment exists. The four stays on the site remain invented and labelled demo.
+
+Caught in public:
+The first full run caught a missing null binding in the shared availability query. Fixed, and both the read API and booking suites pass again.
+
+Tomorrow:
+Paystack split — hosted checkout, signed webhook, idempotency, 10% commission stored, and confirmation through the lock we just built. Card, bank transfer and USSD stay on Paystack.
+```
+
+**Next pickup:** Day 8, Stage 7 — Paystack split. Add `POST /api/payments/initialize` using hosted checkout with card, bank transfer and USSD; verify the webhook signature and reject replays by `paystack_reference`; call `confirmBooking()` inside the webhook transaction; store the 10% commission and hotel share from the locked split. Use test keys only — no live key or real hotel yet.

@@ -1,4 +1,6 @@
-import { query } from "../db/client.js";
+import type { Transaction } from "sequelize";
+import { query, queryInTransaction } from "../db/client.js";
+import { HttpError } from "./errors.js";
 
 export type AvailabilityRow = {
   room_id: string;
@@ -39,6 +41,7 @@ const AVAILABILITY_SQL = `
              AND hb.status IN ('held', 'payment_pending')
              AND hb.check_in < :to
              AND hb.check_out > :from
+             AND (:excludeBookingId IS NULL OR h.booking_id <> :excludeBookingId)
         )
         - (
           SELECT count(*)::int
@@ -59,15 +62,29 @@ const AVAILABILITY_SQL = `
   FROM room_availability
 `;
 
+export type AvailabilityOptions = {
+  /** Pin the calculation to a writing transaction so the result cannot change under us. */
+  transaction?: Transaction;
+  /** A booking confirming its own hold must not count that hold against itself. */
+  excludeBookingId?: string;
+};
+
 export async function getRoomAvailability(
   roomId: string,
   from: string,
   to: string,
+  options: AvailabilityOptions = {},
 ): Promise<AvailabilityRow | undefined> {
-  const rows = await query<AvailabilityRow>(
-    `${AVAILABILITY_SQL} WHERE room_id = :roomId`,
-    { roomId, from, to },
-  );
+  const replacements = {
+    roomId,
+    from,
+    to,
+    excludeBookingId: options.excludeBookingId ?? null,
+  };
+  const sql = `${AVAILABILITY_SQL} WHERE room_id = :roomId`;
+  const rows = options.transaction
+    ? await queryInTransaction<AvailabilityRow>(sql, replacements, options.transaction)
+    : await query<AvailabilityRow>(sql, replacements);
   const row = rows[0];
   if (!row) return undefined;
   return {
@@ -86,10 +103,43 @@ export async function availableRoomIds(
   const guestClause = guests ? "AND sleeps >= :guests" : "";
   const rows = await query<AvailabilityRow>(
     `${AVAILABILITY_SQL} WHERE available > 0 ${guestClause}`,
-    guests ? { from, to, guests } : { from, to },
+    {
+      from,
+      to,
+      excludeBookingId: null,
+      ...(guests ? { guests } : {}),
+    },
   );
   return {
     roomIds: rows.map((row) => row.room_id),
     hotelIds: [...new Set(rows.map((row) => row.hotel_id))],
   };
+}
+
+/** Serialise writers for one room. Every hold and confirmation takes this lock. */
+export async function lockRoom(
+  roomId: string,
+  transaction: Transaction,
+): Promise<void> {
+  const rows = await queryInTransaction<{ id: string }>(
+    `SELECT id::text AS id FROM rooms WHERE id = :roomId FOR UPDATE`,
+    { roomId },
+    transaction,
+  );
+  if (rows.length === 0) throw new HttpError(404, "Room not found");
+}
+
+/** Re-check stock inside the same transaction that will write the booking. */
+export async function assertRoomAvailable(
+  roomId: string,
+  from: string,
+  to: string,
+  options: AvailabilityOptions,
+): Promise<AvailabilityRow> {
+  const row = await getRoomAvailability(roomId, from, to, options);
+  if (!row) throw new HttpError(404, "Room not found");
+  if (row.available < 1) {
+    throw new HttpError(409, "This room is no longer available for those dates");
+  }
+  return row;
 }

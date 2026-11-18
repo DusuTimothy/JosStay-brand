@@ -100,4 +100,4 @@ Before production: convert the wordmark to outlines, test the mark at 16px, and 
 
 ## 8. Migration from the current mark
 
-The existing site uses **"The Plateau Pin"** in `components/brand/logo.tsx`, plus `app/icon.svg` and social/OG imagery. When you approve this direction, those files need a single coordinated swap — the wordmark component, favicon, manifest icons and the brand book's Part 2. No layout changes are required; the new mark occupies the same footprint.
+The existing site uses **"The Plateau Pin"** in `client/components/brand/logo.tsx`, plus `client/app/icon.svg` and social/OG imagery. When you approve this direction, those files need a single coordinated swap — the wordmark component, favicon, manifest icons and the brand book's Part 2. No layout changes are required; the new mark occupies the same footprint.

@@ -1,6 +1,6 @@
 # JosStay — Environment Keys and How to Get Each Value
 
-**Status:** No real `.env` files are present or committed. `.env.example` files with empty placeholders exist at the frontend root and in `api/`.
+**Status:** No real `.env` files are present or committed. Empty `.env.example` files exist in `client/` and `server/`.
 **Date:** 17 November 2026
 **Related:** `02-BACKEND-ARCHITECTURE.md`, `05-PRODUCTION-CHECKLIST.md`, `11-PAYSTACK-SPLIT-REFUND-CONFIRMATION.md`
 
@@ -26,7 +26,7 @@
 
 # Part A — Frontend keys (Next.js / Vercel)
 
-Local file: `josstay-brandbook/.env.local`. Production: Vercel dashboard.
+Local file: `client/.env.local`. Production: Vercel dashboard, project rooted at `client/`.
 
 ## `NEXT_PUBLIC_SITE_URL` — [needs account]
 **Used for:** canonical links, JSON-LD, Open Graph tags, links inside emails.
@@ -108,7 +108,7 @@ Local file: `josstay-brandbook/.env.local`. Production: Vercel dashboard.
 
 # Part B — Backend keys (Express / Render)
 
-Local file: `api/.env`. Production: Render dashboard. **All of these are secret unless stated otherwise.**
+Local file: `server/.env`. Production: Render dashboard, service rooted at `server/`. **All of these are secret unless stated otherwise.**
 
 ## 1. Application
 
@@ -292,12 +292,15 @@ Local file: `api/.env`. Production: Render dashboard. **All of these are secret 
 ## 7. How to put them where they belong
 
 **Local frontend**
-1. Copy the frontend list into `josstay-brandbook/.env.local`.
-2. `npm run dev` serves on port 4300.
+1. Copy `client/.env.example` to `client/.env.local` and fill the frontend values.
+2. From the repo root, `npm run dev` serves the client on port 4300.
 
 **Local backend**
-1. Copy the backend list into `api/.env`.
-2. Use Paystack test keys only.
+1. Copy `server/.env.example` to `server/.env` and fill the backend values.
+2. From the repo root, `npm run dev:server` serves the API on port 10000.
+3. Use Paystack test keys only.
+
+Install once from the repo root: `npm install`. npm workspaces link `client`, `server` and `packages/shared` into a single `node_modules` and one lockfile.
 
 **Vercel**
 1. Project → **Settings → Environment Variables**.

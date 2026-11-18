@@ -10,6 +10,7 @@
 |---|---|---|---|---|
 | 1 | 17 Nov | 0 — Docs locked | **Done** | #0 |
 | 2 | 18 Nov | 1 — Foundation | **Done** | #1 |
+| 2b | 18 Nov | 1b — Monorepo layout | **Done** | #2 |
 | 3 | 19 Nov | 2 — Demo data | Pending | — |
 | 4 | 20 Nov | 3 — Truth on pages | Pending | — |
 | 5 | 21 Nov | 4 — Backend schema | Pending | — |
@@ -119,4 +120,52 @@ Tomorrow:
 Move the demo listing data into the new hotel shape — areas, policy templates and honest verification fields, still clearly labelled demo.
 ```
 
-**Next pickup:** Day 3, Stage 2 — remodel `lib/data.ts` into the shared `Hotel` shape, 3–5 clearly labelled demo hotels, areas derived from hotel data, verification and policy fields. Keep every component and the design system unchanged; home and search must still render.
+**Next pickup (superseded by the addendum below):** Day 3, Stage 2 — remodel `client/lib/data.ts` into the shared `Hotel` shape.
+
+---
+
+## Day 2 (addendum) — Wednesday 18 November 2026 · Stage 1b: Monorepo layout
+
+**Status:** Done
+
+**What we did**
+- Restructured the repository into npm workspaces with the client and server as top-level siblings, as requested: `client/` (`@josstay/client`), `server/` (`@josstay/server`) and `packages/shared/` (`@josstay/shared`).
+- Moved the entire Next.js app, its configs and its generated agent guidance into `client/` without changing any component, page, style or image.
+- Moved the Express service into `server/`. Both apps now depend on `@josstay/shared` through the workspace link.
+- Replaced the two separate installs and lockfiles with one root `npm install` and one root `package-lock.json`. Added root scripts that delegate to each workspace.
+- Updated `README.md`, `docs/01`, `docs/06`, `docs/12` and `docs/13` so every path and command points at the new layout. `client/AGENTS.md` is now the Next.js guidance file.
+
+**Files touched**
+Moved: `app/`, `components/`, `lib/`, `public/`, `next.config.mjs`, `postcss.config.mjs`, `tsconfig.json`, `AGENTS.md` and `.env.example` → `client/`; `api/*` → `server/`.
+Changed: `package.json`, `package-lock.json`, `client/package.json`, `server/package.json`, `README.md`, `docs/01-PRODUCT-PLAN.md`, `docs/06-LOGO-BRIEF.md`, `docs/12-ENVIRONMENT-KEYS.md`, `docs/13-PUBLIC-BUILD-PLAN.md`, `docs/14-BUILD-LOG.md`.
+
+**Verification**
+- `npm install` at the root → three workspaces linked, one lockfile; `npm ls --workspaces --depth=0` shows all three.
+- `npm run typecheck` → clean in all three workspaces.
+- `npm run build` → shared build clean; Next.js production build compiled all 27 pages; server TypeScript build clean.
+- `npm run dev` → client home page returned HTTP 200 at `http://localhost:4300`.
+- `npm run start:server` → `GET /health` returned HTTP 200 with the same payload as before the move.
+- No UI or design-system files were edited; only their paths changed.
+
+**Social post #2**
+```text
+[Day 2 / building JosStay in public until 30 Nov]
+
+One small restructure, one big simplification.
+
+What we shipped today:
+• The repo is now a proper monorepo: client/ for the Next.js site, server/ for the Express API, packages/shared for the rules both sides use.
+• One npm install, one lockfile, one set of root commands instead of separate projects drifting apart.
+• The site and API still build, the home page still loads, and /health still answers 200.
+
+Why it matters:
+A marketplace has two halves that must agree on the same data. Keeping them in one workspace makes "the public hotel shape has no phone number" a rule enforced for both sides, not a convention somebody has to remember.
+
+Still real / still demo:
+No hotel is live. No booking or payment is connected. We changed where the code lives, not what the product does.
+
+Tomorrow:
+Demo hotel data in the shared shape, with areas and honest verification fields.
+```
+
+**Next pickup:** Day 3, Stage 2 — in `client/lib/data.ts`, remodel demo listings into the shared `Hotel` shape. Add 3–5 clearly labelled demo hotels, areas derived from hotel data, and policy/verification fields. Do not touch components or the design system; home and search must render as before.

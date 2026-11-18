@@ -26,12 +26,15 @@ Every day we:
 
 | Path | Purpose |
 |---|---|
-| `/home/timothy-dusu/josstay-brandbook` | Existing Next.js frontend — keep the UI/design system unchanged |
-| `/home/timothy-dusu/josstay-brandbook/api` | Express API service inside the same repo |
-| `/home/timothy-dusu/josstay-brandbook/packages/shared` | Zod schemas and types shared by frontend and API |
+| `/home/timothy-dusu/josstay-brandbook` | Monorepo root — docs, npm workspaces and one lockfile |
+| `/home/timothy-dusu/josstay-brandbook/client` | Next.js frontend (`@josstay/client`) — keep the UI/design system unchanged |
+| `/home/timothy-dusu/josstay-brandbook/server` | Express API (`@josstay/server`) |
+| `/home/timothy-dusu/josstay-brandbook/packages/shared` | Zod schemas and types (`@josstay/shared`) shared by client and server |
 | `docs/14-BUILD-LOG.md` | The pickup point after every stage |
 
-Before writing any code, re-read `AGENTS.md` and the relevant guide under `node_modules/next/dist/docs/` in the frontend project, as required.
+Install once at the root with `npm install`. Root scripts: `npm run dev` (client), `npm run dev:server`, `npm run build`, `npm run typecheck`.
+
+Before writing any code, re-read `client/AGENTS.md` and the relevant guide under `node_modules/next/dist/docs/`, as required.
 
 ---
 
@@ -41,7 +44,7 @@ Before writing any code, re-read `AGENTS.md` and the relevant guide under `node_
 |---|---|---|---|---|---|
 | 1 | 17 Nov | Tue | **0 — Docs locked** | All ten+ decision docs, logo concept, env key guide, this plan and the build log | Docs complete, decisions locked, no code touched |
 | 2 | 18 Nov | Wed | **1 — Foundation** | Done — see build log | Done — frontend/API typecheck clean, `GET /health` returned 200 |
-| 3 | 19 Nov | Thu | **2 — Demo data** | Remodel `lib/data.ts` into `Hotel` shape; 3–5 clearly labelled demo hotels; derived areas; verification and policy fields | Home and search render with new data; no component redesign |
+| 3 | 19 Nov | Thu | **2 — Demo data** | Remodel `client/lib/data.ts` into `Hotel` shape; 3–5 clearly labelled demo hotels; derived areas; verification and policy fields | Home and search render with new data; no component redesign |
 | 4 | 20 Nov | Fri | **3 — Truth on pages** | New home copy, trust strip, search box, verification panel, policy + deadline display, demo pills, AI question box UI. Confirm no phone in public data | Build clean; public-data test shows no hotel phone |
 | 5 | 21 Nov | Sat | **4 — Backend schema** | PostgreSQL tables and migrations from `02-BACKEND-ARCHITECTURE.md` §3; Redis client; `refunds` recovery fields | Migrations run locally; tables match the doc |
 | 6 | 22 Nov | Sun | **5 — Read API** | `GET /hotels`, `/hotels/:slug`, `/areas`, `/availability`; Zod-validated query params; public response test | Guest API never returns `phone_encrypted` |
@@ -125,9 +128,9 @@ Rules: no "launched", no "live in Jos", no fake counts, no invented ratings, no 
 **Scope:** commit application code plus a **curated set of core docs**. Working notes and transient files stay local.
 
 **Will be committed**
-- Application source: `app/`, `components/`, `lib/`, `api/`, `packages/`, configs and `.gitignore`.
-- Core docs: `BRAND-BOOK.md`, `AGENTS.md`, `docs/01` through `docs/14`, and `docs/logo-concept.svg` (the referenced design concept).
-- Empty `.env.example` placeholders at the frontend root and in `api/`.
+- Application source: `client/`, `server/`, `packages/`, root `package.json` and `.gitignore`.
+- Core docs: `BRAND-BOOK.md`, `README.md`, `client/AGENTS.md`, `docs/01` through `docs/14`, and `docs/logo-concept.svg` (the referenced design concept).
+- Empty `.env.example` placeholders in `client/` and `server/`.
 - No secrets: `.env.example` with empty placeholders is committed; real `.env` files never are.
 
 **Will NOT be committed**

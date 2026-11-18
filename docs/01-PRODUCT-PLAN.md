@@ -151,7 +151,7 @@ Nothing in demo mode may imply a real inspection, a real price or a real guest r
 | **3 — Intelligence** | AI search, policy Q&A, WhatsApp assistant, photo/report checks, JSON-LD | AI answers are grounded, logged and hand off to a human |
 | **4 — Scale** | Real hotels, real photos, maps, partner onboarding, removal of demo labels | First live hotel paid out correctly |
 
-Read `node_modules/next/dist/docs/` before writing any code, per `AGENTS.md`.
+Read `node_modules/next/dist/docs/` before writing any code, per `client/AGENTS.md`.
 
 ---
 

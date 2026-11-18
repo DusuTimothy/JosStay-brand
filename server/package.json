@@ -1,5 +1,5 @@
 {
-  "name": "josstay-api",
+  "name": "@josstay/server",
   "version": "0.1.0",
   "private": true,
   "type": "module",

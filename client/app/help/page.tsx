@@ -54,8 +54,8 @@ const GROUPS: { title: string; items: { q: string; a: string }[] }[] = [
         a: "We approve and initiate refunds within 24 hours. Paystack processes them asynchronously; a refund marked “processed” can still take up to 10 business days to appear, depending on your bank. That timeline belongs to Paystack and your bank, not to JosStay.",
       },
       {
-        q: "Is the service fee refundable?",
-        a: "In full if you cancel 72 hours or more before check-in. Between 72 and 24 hours, the service fee is retained. Inside 24 hours, normal cancellation terms apply — except under the JosStay Promise.",
+        q: "Do I pay a service fee?",
+        a: "No. The price you see is all-in. JosStay's commission is paid by the hotel. Your cancellation rights follow the template shown on the listing.",
       },
     ],
   },
@@ -64,7 +64,7 @@ const GROUPS: { title: string; items: { q: string; a: string }[] }[] = [
     items: [
       {
         q: "The power has gone off and the inverter isn't holding.",
-        a: "Message the support line immediately with your booking reference. If the property cannot be restored to the standard in its inspection record, the JosStay Promise applies: we re-house you or refund the unused nights. Do not wait until checkout.",
+        a: "Message the support line immediately with your booking reference. An agent reviews it against the listing record and the final terms. Do not wait until checkout.",
       },
       {
         q: "Something is broken or missing.",

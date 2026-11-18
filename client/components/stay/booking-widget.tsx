@@ -7,7 +7,6 @@ import {
   Minus,
   Plus,
   ShieldCheck,
-  Zap,
   X,
   MessageCircle,
   CreditCard,
@@ -18,6 +17,7 @@ import { naira, nightsBetween, formatRange } from "@/lib/format";
 import { RangeCalendar } from "@/components/booking/range-calendar";
 import { useBooking } from "@/components/booking/booking-provider";
 import { Button } from "@/components/ui/button";
+import { PolicyNote } from "@/components/stay/policy-note";
 import { cn } from "@/lib/utils";
 
 const WHATSAPP_NUMBER = "2348000000000";
@@ -262,6 +262,7 @@ export function BookingWidget({ stay }: { stay: Stay }) {
         ) : null}
 
         <div className="mt-4 space-y-2 border-t border-zinc-200 pt-4">
+          <PolicyNote policy={stay.policy} checkIn={range?.from} compact />
           <p className="flex items-start gap-1.5 text-[0.75rem] leading-snug text-zinc-600">
             <ShieldCheck className="mt-0.5 size-3.5 shrink-0 text-emerald-600" aria-hidden="true" />
             <span>
@@ -270,7 +271,7 @@ export function BookingWidget({ stay }: { stay: Stay }) {
             </span>
           </p>
           <p className="flex items-start gap-1.5 text-[0.75rem] leading-snug text-zinc-600">
-            <Zap className="mt-0.5 size-3.5 shrink-0 text-emerald-600" aria-hidden="true" />
+            <Info className="mt-0.5 size-3.5 shrink-0 text-emerald-600" aria-hidden="true" />
             <span>{stay.power} — demo note, not yet inspected.</span>
           </p>
         </div>

@@ -46,9 +46,8 @@ export function SiteFooter() {
           <div className="max-w-sm">
             <Logo />
             <p className="mt-4 text-[0.875rem] leading-relaxed text-zinc-600">
-              Verified shortlets and hotel rooms across Jos, Plateau State. Every
-              stay checked before it goes live — so you can book without the
-              guesswork.
+              A demo preview of a hotel marketplace for Jos, Plateau State. Real
+              listings will carry dated reports, power tests and all-in prices.
             </p>
             <div className="mt-5 flex items-center gap-2">
               <a

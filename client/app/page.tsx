@@ -3,7 +3,18 @@ import Image from "next/image";
 import { ArrowRight, Check, ShieldCheck, Zap, Camera, MapPin } from "lucide-react";
 import { SearchPill } from "@/components/home/search-pill";
 import { StayExplorer } from "@/components/home/stay-explorer";
+import { AskJosStay } from "@/components/home/ask-josstay";
+import { DemoPill } from "@/components/ui/demo-pill";
 import { buttonClasses } from "@/components/ui/button";
+import { AREAS } from "@/lib/data";
+
+const AREA_BLURBS: Record<string, string> = {
+  Rayfield: "Quiet, central, best for business and family visits.",
+  Lamingo: "Ridge views and newer builds; cooler evenings.",
+  "Little Rayfield": "Walkable to Rayfield, usually better value.",
+  Bukuru: "Hotel-led, good for short business trips.",
+  "24/7 Power": "Demo stays with a 24/7 power note — not tested on site.",
+};
 
 export default function HomePage() {
   return (
@@ -83,9 +94,10 @@ export default function HomePage() {
               <p className="text-[0.75rem] font-bold uppercase tracking-[0.1em] text-pine-700">
                 Curated in Jos
               </p>
-              <h2 className="mt-1.5 text-section text-obsidian">
-                Stays we’ve actually walked through
-              </h2>
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                <h2 className="text-section text-obsidian">Demo stays to explore</h2>
+                <DemoPill label="No hotel is live" />
+              </div>
             </div>
             <Link
               href="/search"
@@ -112,40 +124,31 @@ export default function HomePage() {
               </p>
               <h2 className="mt-1.5 text-section text-obsidian">Pick your side of Jos</h2>
               <p className="mt-1.5 max-w-xl text-[0.875rem] text-zinc-500">
-                Each area has its own character, traffic and power profile. These
-                pages are written from inspections, not from listing counts.
+                Counts come from the demo stays below. No area claims an
+                inspection that has not happened.
               </p>
             </div>
           </div>
 
           <div className="mt-7 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {[
-              { name: "Rayfield", blurb: "Quiet, central, best for business and family visits.", count: 24 },
-              { name: "Lamingo", blurb: "Ridge views and newer builds; cooler evenings.", count: 18 },
-              { name: "Little Rayfield", blurb: "Walkable to Rayfield, usually better value.", count: 11 },
-              { name: "Bukuru", blurb: "Hotel-led, good for short business trips.", count: 15 },
-              { name: "Bodija", blurb: "Close to the city centre and the market.", count: 9 },
-              { name: "24/7 Power", blurb: "Solar and inverter stays, verified on inspection.", count: 31, feature: true },
-            ].map((area) => (
+            {AREAS.map((area) => (
               <Link
-                key={area.name}
-                href={
-                  "feature" in area && area.feature
-                    ? "/jos/24-7-power"
-                    : `/jos/${area.name.toLowerCase().replace(/\s+/g, "-")}`
-                }
+                key={area.slug}
+                href={`/jos/${area.slug}`}
                 className="group flex items-start justify-between gap-4 rounded-xl border border-zinc-200 bg-white p-4 transition-[border-color,box-shadow,transform] hover:-translate-y-0.5 hover:border-pine-200 hover:shadow-raised motion-reduce:hover:translate-y-0"
               >
                 <div>
                   <h3 className="flex items-center gap-1.5 font-display text-[0.9375rem] font-bold text-obsidian">
-                    {"feature" in area && area.feature ? (
+                    {area.feature ? (
                       <Zap className="size-4 text-emerald-600" aria-hidden="true" />
                     ) : (
                       <MapPin className="size-4 text-pine-700" aria-hidden="true" />
                     )}
                     {area.name}
                   </h3>
-                  <p className="mt-1 text-[0.8125rem] leading-snug text-zinc-500">{area.blurb}</p>
+                  <p className="mt-1 text-[0.8125rem] leading-snug text-zinc-500">
+                    {AREA_BLURBS[area.name] ?? "A demo area in the preview."}
+                  </p>
                 </div>
                 <span className="tabular shrink-0 rounded-full bg-zinc-100 px-2 py-0.5 text-[0.75rem] font-bold text-zinc-600">
                   {area.count}
@@ -168,10 +171,11 @@ export default function HomePage() {
                 We check the stay, so you don’t have to.
               </h2>
               <p className="mt-4 max-w-lg text-body text-zinc-600">
-                Most shortlet bookings in Nigeria end with a phone number and a
-                prayer. JosStay replaces that with a record: who inspected the
+                Booking a shortlet in Jos often means trusting a phone number
+                and a photo. The aim is a record you can read: who inspected the
                 property, when, what the power actually does, and what happens if
-                it is not as described.
+                it is not as described. No such record exists for the demo stays
+                yet.
               </p>
 
               <ul className="mt-6 space-y-3">
@@ -229,6 +233,13 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* --------------------------------------------------------- Ask JosStay */}
+      <section className="py-2 sm:py-6">
+        <div className="mx-auto max-w-[1280px] px-4 sm:px-6 lg:px-8">
+          <AskJosStay />
+        </div>
+      </section>
+
       {/* --------------------------------------------------------------- Partner */}
       <section className="pb-16">
         <div className="mx-auto max-w-[1280px] px-4 sm:px-6 lg:px-8">
@@ -237,9 +248,9 @@ export default function HomePage() {
               <div>
                 <h2 className="text-section text-obsidian">Own a place in Jos?</h2>
                 <p className="mt-2 max-w-xl text-[0.875rem] text-zinc-600">
-                  We handle photography, inspection, pricing and payment. Your name
-                  and details never appear on the public listing — every guest
-                  books through JosStay.
+                  Once a hotel joins, we handle photography, inspection, pricing
+                  and payment. The owner's identity and the hotel phone stay off
+                  the public listing — guests book through JosStay.
                 </p>
               </div>
               <div className="flex flex-col gap-2.5 sm:flex-row lg:justify-end">

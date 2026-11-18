@@ -16,7 +16,7 @@ const COPY: Record<
       "Rayfield is where most of our guests end up, and where most of our inventory is. It is quiet without being remote, central without the market noise, and the roads hold up better in the rainy season than most of the city. You are five minutes from the Rayfield Resort roundabout and ten from the city centre.",
     suits: "Business travellers, family visits, and anyone who wants to walk to a café.",
     getting: "10–15 minutes to the city centre by car. Bolt is reliable here during the day.",
-    power: "Mixed grid, but most verified properties run solar or inverter backup. Check the listing record.",
+    power: "Mixed grid. The demo note mentions solar or inverter backup; no test has been run.",
   },
   Lamingo: {
     lead: "Cooler air and a view.",
@@ -29,10 +29,10 @@ const COPY: Record<
   "Little Rayfield": {
     lead: "Rayfield's quieter, better-value neighbour.",
     body:
-      "Little Rayfield sits just off the main Rayfield corridor, close enough to walk for groceries but far enough to avoid the traffic. The housing stock is older and more varied, which is why we inspect harder here — and why prices are usually keener for the same number of bedrooms.",
+      "Little Rayfield sits just off the main Rayfield corridor, close enough to walk for groceries but far enough to avoid the traffic. The housing stock is older and more varied, which is why a dated inspection matters here — and why prices are usually keener for the same number of bedrooms.",
     suits: "Longer stays, families, and guests who want space over polish.",
     getting: "Walkable to Rayfield amenities; 10 minutes by car to the centre.",
-    power: "Older wiring is common. We test the inverter under load, not just its presence.",
+    power: "Older wiring is common. A real listing needs an under-load test recorded here; the demo has none.",
   },
   Bukuru: {
     lead: "Hotel service on the southern edge.",
@@ -48,15 +48,15 @@ const COPY: Record<
       "Bodija is the closest thing to a city-centre stay in our collection: the market, transport and food are on the doorstep. It is livelier and noisier than the northern areas, and that is the point.",
     suits: "Guests who want to be in the middle of things and don't need a car.",
     getting: "Central. Most trips are short; traffic is the main variable.",
-    power: "Grid-heavy area. Only book a Bodija property with a verified backup system.",
+    power: "Grid-heavy area. A backup claim needs a dated test before it can be trusted.",
   },
   "24/7 Power": {
-    lead: "Tested with the mains off.",
+    lead: "Notes only — not tested in the demo.",
     body:
-      "Power is the first question every guest asks, and the first thing most listings exaggerate. This collection only includes properties where a JosStay inspector switched off the public supply and recorded what kept running: lights, fans, Wi-Fi, fridge, sometimes air conditioning.",
+      "Power is the first question every guest asks, and the first thing most listings exaggerate. In the demo this collection groups stays whose notes mention 24/7 power. A real collection would require a dated test with the mains off, saying what actually kept running.",
     suits: "Remote workers, guests on calls, families with young children, and anyone who has been burned before.",
-    getting: "Spread across Rayfield, Lamingo and Little Rayfield. Filter by area inside the collection.",
-    power: "Every property here has a dated power test in its inspection record. If the backup changes, the listing changes.",
+    getting: "Spread across Rayfield, Lamingo, Little Rayfield and Bukuru. Filter by area inside the collection.",
+    power: "No property here has a dated power test yet. A 24/7 claim appears only after an agent test.",
   },
 };
 
@@ -81,7 +81,7 @@ export async function generateMetadata({
   if (!found) return { title: "Area not found" };
   const copy = COPY[found.name];
   return {
-    title: `Stays in ${found.name}, Jos`,
+    title: `Demo stays in ${found.name}, Jos`,
     description: `${copy.lead} ${copy.body.slice(0, 120)}…`,
   };
 }
@@ -154,10 +154,10 @@ export default async function AreaPage({ params }: { params: Promise<{ area: str
       <section className="mt-10">
         <div className="flex items-baseline justify-between gap-4">
           <h2 className="text-section text-obsidian">
-            {stays.length} verified {stays.length === 1 ? "stay" : "stays"}
+            {stays.length} demo {stays.length === 1 ? "stay" : "stays"}
           </h2>
           <p className="hidden text-[0.8125rem] text-zinc-500 sm:block">
-            Prices include fees · NGN
+            All-in demo prices · NGN
           </p>
         </div>
 
@@ -170,11 +170,11 @@ export default async function AreaPage({ params }: { params: Promise<{ area: str
         ) : (
           <div className="mt-5 rounded-2xl border border-dashed border-zinc-300 bg-white p-8 text-center">
             <p className="font-display text-lg font-bold text-obsidian">
-              No verified stays in {found.name} yet
+              No demo stays in {found.name} yet
             </p>
             <p className="mx-auto mt-1 max-w-md text-[0.875rem] text-zinc-500">
-              We only publish properties we have inspected. Ask us on WhatsApp —
-              we often have a room that isn't listed yet.
+              Try another area, or ask us on WhatsApp. No inspection is claimed
+              for any demo listing.
             </p>
           </div>
         )}

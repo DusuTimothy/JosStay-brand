@@ -7,6 +7,7 @@ import {
   type PublicHotel,
   type VerificationStatus,
 } from "@josstay/shared";
+import { formatDateLong } from "@/lib/format";
 
 export type RoomTag =
   | "Living Room"
@@ -41,6 +42,8 @@ export type VerificationView = {
   status: VerificationStatus | null;
   label: string;
   note: string;
+  /** Formatted inspection date, or null when no agent report exists. */
+  inspectedAt: string | null;
 };
 
 /**
@@ -96,19 +99,21 @@ const POLICY_VIEWS: Record<PolicyTemplate, PolicyView> = {
   },
 };
 
-function verificationView(status?: VerificationStatus): VerificationView {
-  if (!status) {
+function verificationView(hotel: PublicHotel): VerificationView {
+  if (!hotel.verificationStatus || !hotel.inspectedAt) {
     return {
       status: null,
       label: "Not inspected — demo",
       note: "No agent report exists for this demo listing. No verification badge is claimed.",
+      inspectedAt: null,
     };
   }
 
   return {
-    status,
-    label: status,
-    note: "Based on a dated agent report.",
+    status: hotel.verificationStatus,
+    label: hotel.verificationStatus,
+    note: `Based on the agent report dated ${formatDateLong(hotel.inspectedAt)}.`,
+    inspectedAt: formatDateLong(hotel.inspectedAt),
   };
 }
 
@@ -438,7 +443,7 @@ export const STAYS: Stay[] = PUBLIC_HOTELS.map((hotel) => {
     nightly: Math.round(hotel.nightlyKobo / 100),
     ...copy,
     policy: POLICY_VIEWS[hotel.policyTemplate],
-    verification: verificationView(hotel.verificationStatus),
+    verification: verificationView(hotel),
   };
 });
 

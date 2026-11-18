@@ -6,7 +6,7 @@ import { buttonClasses } from "@/components/ui/button";
 export const metadata: Metadata = {
   title: "About JosStay",
   description:
-    "JosStay is a verified-stay operator in Jos, Plateau State. We inspect, photograph, manage and guarantee every property — and we never publish the owner.",
+    "JosStay is a hotel marketplace in build for Jos, Plateau State. The plan is to inspect and photograph every property before it goes live, and never publish the owner.",
 };
 
 export default function AboutPage() {
@@ -20,14 +20,14 @@ export default function AboutPage() {
       </h1>
       <p className="mt-4 max-w-2xl text-body text-zinc-600">
         JosStay exists because finding a reliable shortlet in Nigeria usually
-        means trusting a stranger's photos, a phone number and a prayer. We
-        decided to be the accountable party instead: we inspect the property, we
-        take the payment, and we answer when something breaks.
+        means trusting a stranger's photos, a phone number and a prayer. The
+        plan is to be the accountable party: inspect the property, take the
+        payment, and answer when something breaks. None of that is live yet.
       </p>
 
       <section className="mt-10 grid gap-3 sm:grid-cols-3">
         {[
-          ["Verified", "42-point inspection before a listing goes live, re-checked every 90 days."],
+          ["Agent reports", "A dated inspection report before a listing goes live, then re-checked on a schedule."],
           ["Accountable", "One company from search to checkout. No hidden host, no middleman."],
           ["Local", "Jos only. The plateau is the product, not a launch pad."],
         ].map(([title, body]) => (
@@ -42,17 +42,16 @@ export default function AboutPage() {
         <h2 className="text-section text-obsidian">How we operate</h2>
         <div className="mt-3 space-y-3 text-[0.9375rem] leading-relaxed text-zinc-700">
           <p>
-            We are not a marketplace. Property owners are suppliers; guests
-            contract with JosStay Hospitality Ltd. That single decision is why we
-            can guarantee a stay: we control the listing, the price, the access
-            and the resolution. It is also why hosts are never displayed — there
-            is no host to display.
+            Property owners are suppliers; guests would contract with JosStay
+            Hospitality Ltd. The intent is one accountable party controlling
+            the listing, the price, the access and the resolution. Owner
+            identity stays private — there is no host to display.
           </p>
           <p>
-            We keep the inventory small on purpose. Every property is walked
-            through by our team, photographed in daylight, and tested for power,
-            water and security. If it fails, it does not go live. A short list
-            you can trust beats a long list you have to verify yourself.
+            We intend to keep the inventory small on purpose. Every real property
+            will be walked through by an agent, photographed in daylight, and
+            tested for power, water and security. If it fails, it does not go
+            live. Today the site shows demo listings only.
           </p>
           <p>
             The name locks us to Jos, and that is deliberate. Local knowledge is
@@ -66,10 +65,9 @@ export default function AboutPage() {
       <section className="mt-10 rounded-2xl border border-pine-200 bg-pine-50 p-6">
         <h2 className="font-display text-lg font-bold text-pine-900">The standard we hold</h2>
         <p className="mt-2 text-[0.9375rem] leading-relaxed text-pine-900/85">
-          If a guest arrives and the stay is not as described, we re-house them or
-          refund them. If we cannot do that without arguing, the listing was not
-          verified in the first place. The Promise is not marketing — it is the
-          operating constraint.
+          The standard is a dated report, a stated power result and a cancellation
+          rule the guest can read before paying. No hotel is live in the demo, so
+          no resolution claim is made yet.
         </p>
         <Link
           href="/promise"
@@ -86,7 +84,7 @@ export default function AboutPage() {
           {[
             ["Legal name", "JosStay Hospitality Ltd"],
             ["Base", "Jos, Plateau State, Nigeria"],
-            ["Model", "Verified-stay operator and merchant of record"],
+            ["Model", "Hotel marketplace in build; merchant of record planned"],
             ["Payments", "Paystack (card, transfer, USSD)"],
             ["Support hours", "8am–9pm WAT, daily"],
           ].map(([k, v], i) => (
@@ -120,7 +118,7 @@ export default function AboutPage() {
         </p>
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
           {[
-            ["Property inspector", "Jos · Full-time", "Walk properties, run the 42-point checklist, shoot the photo set. Must be willing to reject a paying partner."],
+            ["Property inspector", "Jos · Full-time", "Walk properties, run the inspection checklist, shoot the photo set. Must be willing to reject a paying partner."],
             ["Guest experience associate", "Jos · Full-time", "Own the support line, check-ins and Promise cases. Calm under pressure, fluent in WhatsApp."],
           ].map(([role, meta, body]) => (
             <div key={role} className="rounded-xl border border-zinc-200 bg-white p-4">

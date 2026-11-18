@@ -26,6 +26,9 @@ import { GallerySection } from "@/components/stay/gallery-section";
 import { BookingWidget } from "@/components/stay/booking-widget";
 import { Amenities } from "@/components/stay/amenities";
 import { Availability } from "@/components/stay/availability";
+import { VerificationPanel } from "@/components/stay/verification-panel";
+import { PolicyNote } from "@/components/stay/policy-note";
+import { AskJosStay } from "@/components/home/ask-josstay";
 import { Badge } from "@/components/ui/badge";
 
 export function generateStaticParams() {
@@ -243,45 +246,10 @@ export default async function StayPage({ params }: { params: Promise<{ slug: str
               <Availability stay={stay} />
             </div>
 
-            {/* Inspection record */}
-            <section aria-labelledby="record-heading" className="border-t border-zinc-200 pt-7">
-              <h2 id="record-heading" className="text-section text-obsidian">
-                Inspection record
-              </h2>
-              <p className="mt-1.5 text-[0.875rem] text-zinc-600">
-                This demo has no agent report. Real listings show the signed
-                record here, with the inspection date and any open issues.
-              </p>
-
-              <dl className="mt-4 overflow-hidden rounded-xl border border-zinc-200 bg-white">
-                {[
-                  ["Last inspected", "Not inspected"],
-                  ["Agent report", "None"],
-                  ["Photos", `${stay.photos.length} illustrative images`],
-                  ["Power", stay.power],
-                  ["Security", stay.security],
-                  ["Verification status", stay.verification.label],
-                  ["Cancellation template", stay.policy.label],
-                ].map(([k, v], i) => (
-                  <div
-                    key={k}
-                    className={`flex items-baseline justify-between gap-4 px-4 py-3 ${
-                      i > 0 ? "border-t border-zinc-100" : ""
-                    }`}
-                  >
-                    <dt className="text-[0.8125rem] text-zinc-500">{k}</dt>
-                    <dd className="text-right text-[0.8125rem] font-semibold text-obsidian">
-                      {v}
-                    </dd>
-                  </div>
-                ))}
-              </dl>
-
-              <div className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-[#FEF3E2] px-3 py-1 text-[0.75rem] font-bold text-warning ring-1 ring-inset ring-[#F5D9B0]">
-                <span aria-hidden="true" className="size-1.5 rounded-full bg-warning" />
-                Not inspected — demo
-              </div>
-            </section>
+            {/* Verification record */}
+            <div className="border-t border-zinc-200 pt-7">
+              <VerificationPanel stay={stay} />
+            </div>
 
             {/* Rules */}
             <section aria-labelledby="rules-heading" className="border-t border-zinc-200 pt-7">
@@ -316,11 +284,10 @@ export default async function StayPage({ params }: { params: Promise<{ slug: str
                   <h3 className="text-[0.8125rem] font-bold uppercase tracking-[0.06em] text-zinc-500">
                     Safety & cancellation
                   </h3>
-                  <ul className="mt-2 space-y-2 text-[0.875rem] text-zinc-700">
-                    <li className="flex items-start gap-2">
-                      <ShieldCheck className="mt-0.5 size-4 shrink-0 text-pine-700" aria-hidden="true" />
-                      {stay.policy.label}: {stay.policy.summary}
-                    </li>
+                  <div className="mt-2">
+                    <PolicyNote policy={stay.policy} />
+                  </div>
+                  <ul className="mt-3 space-y-2 text-[0.875rem] text-zinc-700">
                     <li className="flex items-start gap-2">
                       <Check className="mt-0.5 size-4 shrink-0 text-pine-700" aria-hidden="true" />
                       Prices are all-in for the guest — no separate service fee.
@@ -340,6 +307,11 @@ export default async function StayPage({ params }: { params: Promise<{ slug: str
                 <ChevronRight className="size-3.5" aria-hidden="true" />
               </Link>
             </section>
+
+            {/* Ask JosStay */}
+            <div className="border-t border-zinc-200 pt-7">
+              <AskJosStay />
+            </div>
 
             {/* Location */}
             <section aria-labelledby="location-heading" className="border-t border-zinc-200 pt-7">

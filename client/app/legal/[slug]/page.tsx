@@ -37,7 +37,7 @@ const DOCS: Record<string, LegalDoc> = {
         heading: "3. Prices, fees and payment",
         bullets: [
           "All prices are quoted in Nigerian Naira (₦) and include VAT where applicable.",
-          "The total shown at checkout includes the nightly rate, cleaning fee (where applicable) and the JosStay service fee.",
+          "The total shown at checkout includes the nightly rate and cleaning fee (where applicable). Guests pay no separate service fee; JosStay's commission is paid by the hotel.",
           "Payments are processed by Paystack. JosStay never stores your full card number or CVV.",
           "Optional extras (late checkout, airport pickup, extra housekeeping) are quoted separately and must be paid before delivery.",
         ],
@@ -152,16 +152,17 @@ const DOCS: Record<string, LegalDoc> = {
       {
         heading: "The tiers",
         bullets: [
-          "72 hours or more before check-in — 100% refund of the nightly rate and cleaning fee. The JosStay service fee is refunded in full as well.",
-          "Between 72 and 24 hours before check-in — 50% refund of the nightly rate. Cleaning fee is refunded in full. Service fee is not refunded.",
-          "Less than 24 hours before check-in — no refund, except under the JosStay Promise.",
+          "Flexible — free cancellation until 24 hours before check-in. After that, the first night is non-refundable.",
+          "Moderate — free until 72 hours before check-in; 50% between 72 and 24 hours; no refund inside 24 hours.",
+          "Strict — free until 24 hours after booking; no refund after that.",
+          "Each hotel chooses one template. The listing shows which one applies before you pay.",
           "No-show — no refund.",
         ],
       },
       {
         heading: "The JosStay Promise overrides the tiers",
         paragraphs: [
-          "If the property is not as described, unsafe, or uninhabitable — no power, no water, no working lock, a different unit, or a material inaccuracy in the listing — the tiers do not apply. We will re-house you in a comparable property or refund the unused nights in full, at your choice. This is the one case where we do not argue about timing.",
+          "If the property is not as described, unsafe, or uninhabitable, contact the support line with your booking reference. Resolution is handled case by case under the final terms. No automatic re-housing or refund is promised here.",
         ],
       },
       {

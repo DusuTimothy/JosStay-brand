@@ -12,7 +12,7 @@
 | 2 | 18 Nov | 1 — Foundation | **Done** | #1 |
 | 2b | 18 Nov | 1b — Monorepo layout | **Done** | #2 |
 | 3 | 19 Nov | 2 — Demo data | **Done** | #3 |
-| 4 | 20 Nov | 3 — Truth on pages | Pending | — |
+| 4 | 20 Nov | 3 — Truth on pages | **Done** | #4 |
 | 5 | 21 Nov | 4 — Backend schema | Pending | — |
 | 6 | 22 Nov | 5 — Read API | Pending | — |
 | 7 | 23 Nov | 6 — Booking core | Pending | — |
@@ -220,4 +220,59 @@ Tomorrow:
 Truth on pages — new home copy, a real verification panel, policy and deadline display, and a UI box for the AI booking question.
 ```
 
-**Next pickup:** Day 4, Stage 3 — truth on pages. Rework home copy, trust strip and search box, add a verification panel with dated agent-report fields, show cancellation policy and booking deadline, add demo pills and the AI question box UI. Do not claim verification, rating or availability that no record supports; confirm again that no phone appears in public data.
+**Next pickup (superseded by the Day 4 entry below):** Day 4, Stage 3 — truth on pages. Rework home copy, trust strip and search box, add a verification panel with dated agent-report fields, show cancellation policy and booking deadline, add demo pills and the AI question box UI. Do not claim verification, rating or availability that no record supports; confirm again that no phone appears in public data.
+
+---
+
+## Day 4 — Friday 20 November 2026 · Stage 3: Truth on pages
+
+**Status:** Done
+
+**What we did**
+- Added five small, reusable pieces instead of redesigning the UI: a `DemoPill`, a `VerificationPanel`, a `PolicyNote`, an `AskJosStay` preview box and a pure `cancellationView()` helper. They carry the honest states the data actually supports.
+- The verification panel renders the dated agent-report fields — last inspected, report result, photos, power, security, cancellation template. Every demo hotel has no report and no date, so the panel reads "Not on file" and "None — no report exists". It never shows a pass badge.
+- Cancellation now shows the hotel's template plus a deadline. With dates selected, Flexible resolves to 24 hours before check-in and Moderate to 72 hours before check-in; Strict explicitly says there is no fixed calendar date until a booking exists. No deadline is invented.
+- Rebuilt the search pill as a working demo search: area comes from the derived `AREAS`, and dates and guest count are real inputs. Submitting navigates to `/search` with those filters in the URL; the server validates every value and `StayExplorer` applies them, including sample date blocks. The condensed pill now shows the guest's actual query, not a hardcoded example.
+- Replaced the invented home area list with `AREAS` from the hotel data. Bodija and its made-up count of 9 are gone; the 24/7 Power count of 31 is gone. Home now says plainly that no hotel is live.
+- Added the AI question box as a disclosed UI preview: a disabled input, "Not connected yet" label, a note that no answer is generated today, and an always-visible "Book by chat with JosStay" fallback. Search and checkout do not depend on it.
+- Removed the remaining borrowed claims across the public pages: the re-house-or-refund guarantee on Promise, About, Help and the cancellation policy; the 42-point and "tested on inspection" copy; "verified stays" headings and buttons; and "shot by JosStay on inspection day". The partner page now states the locked model — 10% commission paid by the hotel, hotel pays the Paystack fee, no guest service fee — instead of the old 30% and guest fee.
+- Kept the layout, tokens and component structure intact. These were field and copy changes, not a visual redesign.
+
+**Files touched**
+New: `client/components/ui/demo-pill.tsx`, `client/components/stay/verification-panel.tsx`, `client/components/stay/policy-note.tsx`, `client/components/home/ask-josstay.tsx`, `client/lib/policy.ts`.
+Changed: `client/app/page.tsx`, `client/app/search/page.tsx`, `client/app/stays/[slug]/page.tsx`, `client/app/jos/page.tsx`, `client/app/jos/[area]/page.tsx`, `client/app/about/page.tsx`, `client/app/promise/page.tsx`, `client/app/help/page.tsx`, `client/app/legal/[slug]/page.tsx`, `client/app/list-your-property/page.tsx`, `client/app/not-found.tsx`, `client/app/styleguide/page.tsx`, `client/components/home/search-pill.tsx`, `client/components/home/stay-explorer.tsx`, `client/components/layout/site-footer.tsx`, `client/components/stay/bento-gallery.tsx`, `client/components/stay/booking-widget.tsx`, `client/components/stay/photo-tour.tsx`, `client/lib/data.ts` and this file.
+
+**Verification**
+- `npm run typecheck` → clean in all three workspaces; `npm run build` → clean. `/search` is now server-rendered on demand because it reads the query string; all other pages prerender as before.
+- Served the production build and checked HTTP 200 on home, `/search`, two stay pages, `/jos`, `/jos/rayfield`, `/promise`, `/about`, `/help`, `/legal/cancellation` and `/list-your-property`.
+- Rendered-page scan for borrowed claims (verified badge, fake ratings, service fee, old inspection date, re-house promise, passed inspection, 42-point, 30% split, guest service fee, "Tested with the mains off") → none.
+- Confirmed "Ask JosStay", "Not connected yet", "Book by chat with JosStay", "Verification record", "Deadline:", "Demo stays to explore" and "No hotel is live" appear in the built HTML.
+- Filter check: unfiltered search rendered 4 of 4 demo stays; `?area=Rayfield&guests=4` rendered 1 of 4 and only the Rayfield card; `?area=Lamingo&guests=3&from=2026-11-25&to=2026-11-27` correctly rendered 0 with the honest empty state.
+- Deadline helper check: Flexible → 24 hours before check-in (Tue, 24 Nov for a 25 Nov check-in); Moderate → 72 hours (Sun, 22 Nov); Strict → no fixed calendar date until a booking exists.
+- Public-data check repeated: no `phone` or `phoneEncrypted` key in `PUBLIC_HOTELS` or view data; every demo `verification.inspectedAt` is null.
+- No `.env` files, secrets, AI-authorship remarks or build output staged.
+
+**Social post #4**
+```text
+[Day 4 / building JosStay in public until 30 Nov]
+
+The pages now say what is actually true.
+
+What we shipped today:
+• A verification panel with the dated agent-report fields. For demo listings every field reads "Not on file" — because no one inspected them.
+• Cancellation shown as the hotel's real template, with a deadline that only becomes a date once dates are chosen. Strict says there is no fixed date until a booking exists.
+• The search box now works: area, dates and guest count go into the URL and filter the demo stays. No more hardcoded "Rayfield · 14–17 Nov" pretending to be a query.
+• The Ask JosStay box is in place — clearly labelled as a preview, with no generated answers and a working "Book by chat" fallback beside it.
+• Removed the last borrowed claims: the re-house-or-refund promise, 42-point checklist, "verified stays" headings and the old 30% / guest-fee commercial model.
+
+Why it matters:
+Trust is a page-level property. A correct schema means nothing if the page above it still says "verified" when nobody inspected the place. Every claim now either points at a field or says plainly that the field is empty.
+
+Still real / still demo:
+Four invented hotels, illustrative photos and sample availability. The AI box does not answer anything yet. No payment, no booking, no hotel live.
+
+Tomorrow:
+Backend schema — the PostgreSQL tables, migrations and refund-recovery fields the rest of the build will sit on.
+```
+
+**Next pickup:** Day 5, Stage 4 — backend schema. Create the PostgreSQL tables and migrations from `docs/02-BACKEND-ARCHITECTURE.md` §3, add the Redis client and the refund recovery fields, and run migrations locally. Keep the public API shape free of phone data; next stage builds the read endpoints on top.

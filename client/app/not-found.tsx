@@ -32,7 +32,7 @@ export default function NotFound() {
         </Link>
         <Link href="/#stays" className={buttonClasses("secondary", "md")}>
           <Search className="size-4" aria-hidden="true" />
-          Browse verified stays
+          Browse demo stays
         </Link>
       </div>
 

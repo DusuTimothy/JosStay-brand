@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { X, ChevronLeft, ChevronRight, Camera, ShieldCheck } from "lucide-react";
+import { X, ChevronLeft, ChevronRight, Camera } from "lucide-react";
 import type { Photo, RoomTag } from "@/lib/data";
 import { groupedPhotos } from "@/lib/data";
 import { cn } from "@/lib/utils";
@@ -176,8 +176,8 @@ export function PhotoTour({
             </div>
 
             <div className="flex items-center gap-1.5 border-t border-zinc-100 px-3 py-2 text-[0.75rem] text-zinc-500 sm:px-5">
-              <ShieldCheck className="size-3.5 text-emerald-600" aria-hidden="true" />
-              Shot by JosStay on inspection day. Not supplied by the property owner.
+              <Camera className="size-3.5 text-zinc-500" aria-hidden="true" />
+              Illustrative sample photos — not from an inspection.
             </div>
           </div>
         </motion.div>

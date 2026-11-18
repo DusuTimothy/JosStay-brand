@@ -18,14 +18,14 @@ import { buttonClasses } from "@/components/ui/button";
 export const metadata: Metadata = {
   title: "The JosStay Promise",
   description:
-    "How JosStay verifies every property before it goes live: inspection, photography, power testing, security checks and the re-house-or-refund guarantee.",
+    "How JosStay plans to verify a property before it goes live: a dated agent report, photography, a power test and security checks.",
 };
 
 const STEPS = [
   {
     icon: ClipboardCheck,
     title: "We apply the same checklist to every property",
-    body: "Forty-two points across cleanliness, safety, power, water, security, bedding and kitchen equipment. A property either passes all mandatory points or it does not go live. There is no partial listing.",
+    body: "The checklist covers cleanliness, safety, power, water, security, bedding and kitchen equipment. A property passes, passes with notes, or fails — and the signed report is dated.",
   },
   {
     icon: Camera,
@@ -35,12 +35,12 @@ const STEPS = [
   {
     icon: Zap,
     title: "We test the power with the mains off",
-    body: "We switch off the public supply and record what actually stays on: lights, fans, Wi-Fi, fridge, air conditioning. “24/7 power” means tested, not promised.",
+    body: "A real listing records what stays on when the mains go off: lights, fans, Wi-Fi, fridge, air conditioning. “24/7 power” means tested, not promised.",
   },
   {
     icon: Lock,
     title: "We check the gate, the guard and the cameras",
-    body: "Security is verified on the same visit. We record the gate type, guard hours, CCTV coverage and parking. The exact address is only released after a booking is confirmed.",
+    body: "Security is checked on the same visit. We record the gate type, guard hours, CCTV coverage and parking. The exact address is only released after a booking is confirmed.",
   },
   {
     icon: CalendarClock,
@@ -57,12 +57,12 @@ export default function PromisePage() {
           The JosStay Promise
         </p>
         <h1 className="mt-3 text-display-hero text-obsidian">
-          If it isn't as described, we fix it or refund it.
+          Clear rules, shown before you pay.
         </h1>
         <p className="mt-4 text-body text-zinc-600">
           Most shortlet bookings in Nigeria end with a phone number and a hope.
-          JosStay replaces that with a record you can read before you pay, and a
-          guarantee you can use after you arrive.
+          JosStay aims to replace that with a record you can read before you
+          pay, and clear rules you can use if something goes wrong.
         </p>
       </header>
 
@@ -75,14 +75,13 @@ export default function PromisePage() {
               The guarantee
             </p>
             <h2 className="mt-3 text-section text-obsidian">
-              Re-housed or refunded. Your choice.
+              What we expect to offer, once it is true.
             </h2>
             <p className="mt-2 text-[0.9375rem] leading-relaxed text-zinc-700">
-              If the property is materially different from the listing, unsafe,
-              or uninhabitable — no power, no water, a broken lock, a different
-              unit — contact us within two hours of check-in. We will move you to
-              a comparable JosStay at no extra cost, or refund the unused nights
-              in full. We do not apply the normal cancellation tiers to this.
+              This page describes the direction of the guarantee. In the demo,
+              no hotel is live and no payout is made. A real guarantee will be
+              written into the final terms, tied to an inspection record and a
+              clear response window.
             </p>
             <div className="mt-5 flex flex-wrap gap-2.5">
               <a
@@ -106,7 +105,7 @@ export default function PromisePage() {
             <ul className="mt-3 space-y-2.5 text-[0.875rem] text-white/85">
               {[
                 "Listing accuracy (rooms, beds, bathrooms, amenities)",
-                "Power and water as described",
+                "Power and water as described in a signed report",
                 "Safety and access (locks, gate, security)",
                 "Cleanliness below the inspection standard",
                 "Double-booking or unit substitution",
@@ -193,7 +192,7 @@ export default function PromisePage() {
 
       <div className="mt-12 flex flex-wrap items-center gap-3">
         <Link href="/#stays" className={buttonClasses("primary", "lg")}>
-          Browse verified stays
+          Browse demo stays
           <ArrowRight className="size-4" aria-hidden="true" />
         </Link>
         <Link

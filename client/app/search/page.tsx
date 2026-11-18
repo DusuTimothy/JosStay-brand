@@ -2,15 +2,47 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowLeft, SlidersHorizontal } from "lucide-react";
 import { StayExplorer } from "@/components/home/stay-explorer";
+import { DemoPill } from "@/components/ui/demo-pill";
 import { buttonClasses } from "@/components/ui/button";
+import { AREAS } from "@/lib/data";
 
 export const metadata: Metadata = {
-  title: "Search verified stays",
-  description: "Browse every verified JosStay in Jos by neighbourhood and feature.",
+  title: "Search demo stays",
+  description:
+    "Filter the clearly labelled demo stays in Jos by area, dates and guests. No hotel is live.",
   robots: { index: false, follow: true },
 };
 
-export default function SearchPage() {
+type RawSearchParams = Record<string, string | string[] | undefined>;
+
+function first(value: string | string[] | undefined): string | undefined {
+  return Array.isArray(value) ? value[0] : value;
+}
+
+const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
+
+export default async function SearchPage({
+  searchParams,
+}: {
+  searchParams: Promise<RawSearchParams>;
+}) {
+  const raw = await searchParams;
+  const requestedArea = first(raw.area);
+  const area = AREAS.some((item) => item.name === requestedArea)
+    ? requestedArea
+    : undefined;
+
+  const guestValue = Number(first(raw.guests));
+  const guests =
+    Number.isInteger(guestValue) && guestValue >= 1 && guestValue <= 8
+      ? guestValue
+      : undefined;
+
+  const fromValue = first(raw.from);
+  const toValue = first(raw.to);
+  const from = fromValue && ISO_DATE.test(fromValue) ? fromValue : undefined;
+  const to = toValue && ISO_DATE.test(toValue) ? toValue : undefined;
+
   return (
     <div className="mx-auto max-w-[1280px] px-4 pb-24 pt-8 sm:px-6 lg:px-8">
       <div className="flex flex-wrap items-end justify-between gap-4">
@@ -18,10 +50,14 @@ export default function SearchPage() {
           <p className="text-[0.6875rem] font-bold uppercase tracking-[0.12em] text-pine-700">
             Search
           </p>
-          <h1 className="mt-2 text-display text-obsidian">Every stay we've verified.</h1>
+          <div className="mt-2 flex flex-wrap items-center gap-3">
+            <h1 className="text-display text-obsidian">Every demo stay in Jos.</h1>
+            <DemoPill label="No hotel is live" />
+          </div>
           <p className="mt-2 max-w-xl text-[0.9375rem] text-zinc-600">
-            Filter by neighbourhood or by the thing that actually matters — 24/7
-            power. Filters are live; no page reload.
+            Filter by neighbourhood, guest count and sample dates. Prices are
+            all-in demo prices; blocked nights are examples, not live
+            availability.
           </p>
         </div>
         <div className="flex gap-2">
@@ -36,7 +72,12 @@ export default function SearchPage() {
       </div>
 
       <div className="mt-8">
-        <StayExplorer />
+        <StayExplorer
+          initialArea={area}
+          initialGuests={guests}
+          initialFrom={from}
+          initialTo={to}
+        />
       </div>
 
       <Link

@@ -16,16 +16,16 @@ import { PartnerForm } from "@/components/partner/partner-form";
 export const metadata: Metadata = {
   title: "List your property",
   description:
-    "JosStay handles photography, verification, pricing, payments and guest support. Your name is never published. Apply for an inspection.",
+    "Planned partnership model: JosStay handles photography, inspection, pricing, payments and guest support. Owner identity is never published.",
 };
 
 const HANDLED = [
   { icon: Camera, title: "Photography", body: "A daylight shoot of every room, re-shot when the property changes." },
-  { icon: ClipboardCheck, title: "Inspection", body: "The 42-point checklist, plus dated re-inspection every 90 days." },
-  { icon: Megaphone, title: "Marketing", body: "Listing copy, neighbourhood SEO, paid social and the AI concierge." },
-  { icon: Wallet, title: "Payments", body: "Paystack collection, refunds, chargebacks and settlement to you." },
+  { icon: ClipboardCheck, title: "Inspection", body: "A dated agent report against the published checklist, before a listing goes live." },
+  { icon: Megaphone, title: "Marketing", body: "Listing copy, neighbourhood SEO and paid social. The AI question box is a preview." },
+  { icon: Wallet, title: "Payments", body: "Paystack collection, refunds and settlement, with a 10% commission split." },
   { icon: Headphones, title: "Guest support", body: "One line for check-in, faults, noise and emergencies — not you." },
-  { icon: ShieldCheck, title: "The guarantee", body: "We absorb re-housing and refund decisions under the Promise." },
+  { icon: ShieldCheck, title: "Resolution", body: "One accountable team handles a problem. No re-housing promise is made." },
 ];
 
 export default function ListPropertyPage() {
@@ -40,9 +40,9 @@ export default function ListPropertyPage() {
             Your property, professionally run.
           </h1>
           <p className="mt-4 max-w-xl text-body text-zinc-600">
-            JosStay handles the photos, the inspection, the pricing, the guests
-            and the problems. You get a predictable share of every booking, and
-            your name never appears on a public listing.
+            The planned model: JosStay handles the photos, the inspection, the
+            pricing, the guests and the problems. You keep 90% of the nightly
+            rate, and your identity never appears on a public listing.
           </p>
 
           <div className="mt-6 flex flex-wrap gap-x-6 gap-y-2 text-[0.8125rem] text-zinc-600">
@@ -73,10 +73,11 @@ export default function ListPropertyPage() {
             <h2 className="text-section text-obsidian">The commercial model</h2>
             <div className="mt-4 overflow-hidden rounded-xl border border-zinc-200 bg-white">
               {[
-                ["You receive", "70% of the nightly rate"],
-                ["JosStay keeps", "30%, which funds inspection, photography, support and payments"],
+                ["You receive", "90% of the nightly rate"],
+                ["JosStay commission", "10% of the nightly rate"],
+                ["Paystack fee", "Paid by the hotel, not the guest"],
+                ["Guest-facing price", "All-in — no separate service fee"],
                 ["Cleaning fee", "Passed to you in full"],
-                ["Guest service fee", "Charged to the guest, kept by JosStay"],
                 ["Settlement", "Every 7 days, to your Nigerian bank account"],
               ].map(([k, v], i) => (
                 <div

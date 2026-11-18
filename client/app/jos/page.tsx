@@ -7,7 +7,7 @@ import { buttonClasses } from "@/components/ui/button";
 export const metadata: Metadata = {
   title: "Jos neighbourhoods",
   description:
-    "Where to stay in Jos: Rayfield, Lamingo, Little Rayfield, Bukuru and Bodija — written from inspections, with verified power and security notes.",
+    "Areas derived from the demo stays in Jos: Rayfield, Lamingo, Little Rayfield and Bukuru. Counts are demo listings, not inspected inventory.",
 };
 
 export default function AreasIndexPage() {
@@ -19,8 +19,8 @@ export default function AreasIndexPage() {
       <h1 className="mt-3 text-display-hero text-obsidian">Pick your side of Jos.</h1>
       <p className="mt-4 max-w-2xl text-body text-zinc-600">
         Each area has a different traffic pattern, power profile and feel. These
-        guides are written from our inspections — not from listing counts or
-        copied tourism copy.
+        guides are derived from the demo stays below; no inspection is claimed
+        for any of them yet.
       </p>
 
       <div className="mt-8 grid gap-3 sm:grid-cols-2">
@@ -56,9 +56,8 @@ export default function AreasIndexPage() {
             24/7 power stays
           </h2>
           <p className="mt-1.5 max-w-xl text-[0.875rem] leading-relaxed text-pine-900/80">
-            This is a feature, not a neighbourhood. Every property here was
-            tested with the mains switched off, and the record says what stayed
-            on.
+            This is a feature, not a neighbourhood. These demo stays carry a
+            24/7 power note; no test has been run and no claim is verified.
           </p>
         </div>
         <ArrowRight className="size-5 shrink-0 text-pine-800 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
@@ -78,7 +77,7 @@ export default function AreasIndexPage() {
 }
 
 const AREA_BLURB: Record<string, string> = {
-  Rayfield: "Quiet, central, best for business and family visits. Our largest verified inventory.",
+  Rayfield: "Quiet, central, best for business and family visits. One demo stay here.",
   Lamingo: "Ridge views and newer builds, with cooler evenings and easy access to the city.",
   "Little Rayfield": "Walkable to Rayfield, usually better value, popular with returning guests.",
   Bukuru: "Hotel-led and good for short business trips, with reliable security.",

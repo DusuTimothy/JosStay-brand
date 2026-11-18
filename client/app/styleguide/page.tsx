@@ -89,9 +89,9 @@ const TYPE_SPECIMENS = [
   ["text-title", "The Rayfield Garden Apartment", "Page title — 28/36px, 700, -2.5%"],
   ["text-section", "Where you'll sleep", "Section — 22/28px, 700, -2%"],
   ["text-card", "Lamingo Skyline Suite", "Card title — 18px, 650, -1.5%"],
-  ["text-body", "Every JosStay is inspected, photographed and power-verified before it goes live.", "Body — 16px / 1.6"],
+  ["text-body", "Every real listing will be inspected, photographed and power-tested before it goes live.", "Body — 16px / 1.6"],
   ["text-body-sm", "Exact address and gate code are shared after your booking is confirmed.", "Body small — 15px / 1.55"],
-  ["text-meta", "Inspected 9 November 2026 · 38 stays hosted", "Meta — 13px / 1.45"],
+  ["text-meta", "Not inspected — demo listing", "Meta — 13px / 1.45"],
 ];
 
 export default function StyleguidePage() {

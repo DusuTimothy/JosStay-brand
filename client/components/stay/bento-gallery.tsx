@@ -64,10 +64,10 @@ export function BentoGallery({
               />
               {i === 0 ? (
                 <span className="absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-full bg-white/95 px-2.5 py-1 text-[0.6875rem] font-bold text-pine-800 shadow-sm backdrop-blur-sm">
-                  <span className="inline-flex size-3.5 items-center justify-center rounded-full bg-emerald-500 text-[0.5rem] text-obsidian">
-                    ✓
+                  <span className="inline-flex size-3.5 items-center justify-center rounded-full bg-amber-500 text-[0.5rem] text-white">
+                    !
                   </span>
-                  Inspected 9 Nov 2026
+                  Demo photos
                 </span>
               ) : null}
             </button>

@@ -79,10 +79,10 @@ const REQUIRED_COLUMNS: Record<string, string[]> = {
   audit_logs: ["actor", "action", "entity", "entity_id", "before", "after", "at"],
 };
 
-const REQUIRED_ENUMS: Record<string, string[]> = {
-  hotel_status: ["draft", "pending", "published"],
-  policy_template: ["flexible", "moderate", "strict"],
-  booking_status: [
+const REQUIRED_ENUM_SETS = [
+  ["draft", "pending", "published"],
+  ["flexible", "moderate", "strict"],
+  [
     "draft",
     "held",
     "payment_pending",
@@ -95,30 +95,36 @@ const REQUIRED_ENUMS: Record<string, string[]> = {
     "refunded",
     "no_show",
   ],
-  refund_status: ["initiated", "processing", "completed", "failed"],
-  recovery_status: ["none", "open", "recovering", "recovered", "written_off"],
-};
+  ["initiated", "processing", "completed", "failed"],
+  ["none", "open", "recovering", "recovered", "written_off"],
+];
 
 function missing(expected: string[], actual: string[]): string[] {
   const found = new Set(actual);
   return expected.filter((item) => !found.has(item));
 }
 
+function sameSet(a: string[], b: string[]): boolean {
+  if (a.length !== b.length) return false;
+  const left = [...a].sort();
+  const right = [...b].sort();
+  return left.every((value, index) => value === right[index]);
+}
+
 async function verify(): Promise<void> {
   const tables = Object.keys(REQUIRED_COLUMNS);
-
-  const columnResult = await query<{ table_name: string; column_name: string }>(
+  const columnRows = await query<{ table_name: string; column_name: string }>(
     `SELECT table_name, column_name
        FROM information_schema.columns
       WHERE table_schema = current_schema()
-        AND table_name = ANY($1::text[])`,
-    [tables],
+        AND table_name IN (:tables)`,
+    { tables },
   );
 
   const problems: string[] = [];
 
   for (const table of tables) {
-    const actual = columnResult.rows
+    const actual = columnRows
       .filter((row) => row.table_name === table)
       .map((row) => row.column_name);
     const absent = missing(REQUIRED_COLUMNS[table], actual);
@@ -130,33 +136,36 @@ async function verify(): Promise<void> {
     }
   }
 
-  const enumNames = Object.keys(REQUIRED_ENUMS);
-  const enumResult = await query<{ type_name: string; enumlabel: string }>(
-    `SELECT t.typname AS type_name, e.enumlabel
-       FROM pg_type t
-       JOIN pg_enum e ON e.enumtypid = t.oid
-      WHERE t.typname = ANY($1::text[])
-      ORDER BY t.typname, e.enumsortorder`,
-    [enumNames],
-  );
+  const enumRows = await query<{ type_name: string; enumlabel: string }>(`
+    SELECT t.typname AS type_name, e.enumlabel
+      FROM pg_type t
+      JOIN pg_enum e ON e.enumtypid = t.oid
+      JOIN pg_namespace n ON n.oid = t.typnamespace
+     WHERE n.nspname = current_schema()
+     ORDER BY t.typname, e.enumsortorder
+  `);
 
-  for (const typeName of enumNames) {
-    const actual = enumResult.rows
-      .filter((row) => row.type_name === typeName)
-      .map((row) => row.enumlabel);
-    const absent = missing(REQUIRED_ENUMS[typeName], actual);
+  const enumValues = new Map<string, string[]>();
+  for (const row of enumRows) {
+    const values = enumValues.get(row.type_name) ?? [];
+    values.push(row.enumlabel);
+    enumValues.set(row.type_name, values);
+  }
 
-    if (absent.length > 0) {
-      problems.push(`${typeName}: missing values ${absent.join(", ")}`);
+  for (const expected of REQUIRED_ENUM_SETS) {
+    const found = [...enumValues.values()].some((values) => sameSet(values, expected));
+    if (found) {
+      console.log(`ok  enum values: ${expected.join(", ")}`);
     } else {
-      console.log(`ok  ${typeName} (${actual.length} values)`);
+      problems.push(`enum type with values ${expected.join(", ")} not found`);
     }
   }
 
-  const migrationCount = await query<{ count: string }>(
+  const migrationRows = await query<{ count: string }>(
     "SELECT count(*)::text AS count FROM schema_migrations",
   );
-  console.log(`ok  schema_migrations (${migrationCount.rows[0].count} applied)`);
+  const migrationCount = migrationRows[0]?.count ?? "0";
+  console.log(`ok  schema_migrations (${migrationCount} applied)`);
 
   if (problems.length > 0) {
     throw new Error(`Schema verification failed:\n- ${problems.join("\n- ")}`);

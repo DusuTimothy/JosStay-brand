@@ -14,6 +14,7 @@
 | 3 | 19 Nov | 2 — Demo data | **Done** | #3 |
 | 4 | 20 Nov | 3 — Truth on pages | **Done** | #4 |
 | 5 | 21 Nov | 4 — Backend schema | **Done** | #5 |
+| 5b | 21 Nov | 4b — ORM correction | **Done** | #5b |
 | 6 | 22 Nov | 5 — Read API | Pending | — |
 | 7 | 23 Nov | 6 — Booking core | Pending | — |
 | 8 | 24 Nov | 7 — Paystack split | Pending | — |
@@ -331,4 +332,67 @@ Tomorrow:
 Read API — GET endpoints for hotels, a single hotel, areas and availability, with Zod-validated query parameters and no phone field in any public response.
 ```
 
-**Next pickup:** Day 6, Stage 5 — read API. Build `GET /api/hotels`, `GET /api/hotels/:slug`, `GET /api/areas` and `GET /api/availability/:roomId` with Zod-validated query params. Use an explicit public column list so `phone_encrypted` can never leak; map rows to the shared `PublicHotel` shape.
+**Next pickup (superseded by the Day 5b entry below):** Day 6, Stage 5 — read API. Build `GET /api/hotels`, `GET /api/hotels/:slug`, `GET /api/areas` and `GET /api/availability/:roomId` with Zod-validated query params. Use an explicit public column list so `phone_encrypted` can never leak; map rows to the shared `PublicHotel` shape.
+
+---
+
+## Day 5b — Saturday 21 November 2026 · Stage 4b: Sequelize ORM and CLI
+
+**Status:** Done
+
+**What we did**
+- Replaced the Day 5 raw-SQL migration and custom checksum runner with Sequelize v6 and Sequelize CLI v6. The pushed Day 5 commit stays in history; this is an appended correction, not a rewrite.
+- Added Sequelize models for all nine tables — `areas`, `hotels`, `rooms`, `verifications`, `bookings`, `holds`, `blocks`, `refunds`, `audit_logs` — with camelCase attributes mapped to the existing snake_case columns and associations for the hotel → room/booking/verification/block paths.
+- Added `server/.sequelizerc`, `server/config/config.cjs` and `server/migrations/20261121000000-initial-schema.cjs`. The CLI config prefers `DIRECT_URL`, records applied migrations in `schema_migrations` with timestamps, and provides both `up` and `down`.
+- Kept the same schema: five enum value sets, check constraints, partial indexes, comments and the `updated_at` trigger. A future schema change needs a new migration file; the CLI tracks filenames rather than checksums.
+- Added an explicit public hotel allow-list in `server/src/db/public-fields.ts`. `PUBLIC_HOTEL_ATTRIBUTES` is the Sequelize attribute form; `INTERNAL_HOTEL_COLUMNS` names phone, payout and commission fields that public reads must never select.
+- Reworked `server/src/db/client.ts` into a lazy Sequelize client with `getModels`, `query`, `withTransaction` and `closePool`. The API still boots without a database configured and fails clearly only when a data route is used.
+- Added `verify:models`. It writes a demo area, hotel, room, booking and refund inside a transaction, checks the public allow-list, confirms the internal phone value is still readable, rejects a bad 10/90 split through `bookings_split_adds_up`, then rolls everything back.
+- Added root commands `migrate:undo`, `migrate:status` and `verify:models` alongside the existing `migrate`, `verify:db` and `verify:cache`.
+
+**Files touched**
+New: `server/.sequelizerc`, `server/config/config.cjs`, `server/migrations/20261121000000-initial-schema.cjs`, `server/src/db/models.ts`, `server/src/db/public-fields.ts`, `server/src/db/verify-models.ts`.
+Changed: `package.json`, `package-lock.json`, `server/package.json`, `server/src/db/client.ts`, `server/src/db/verify-schema.ts`, `docs/12-ENVIRONMENT-KEYS.md` and this file.
+Removed: `server/migrations/0001_initial.sql`, `server/src/db/migrate.ts`.
+
+**Verification**
+- `npm run typecheck` → clean in all three workspaces; `npm run build` → clean.
+- Fresh throwaway PostgreSQL on port 55433 and Redis on port 6380 from the already-present `postgres:15` and `redis:latest` images. No credentials were written to the repo; no `.env` file was created.
+- `npm run migrate` → applied `20261121000000-initial-schema.cjs`; `npm run migrate:status` → `up`; second `npm run migrate` → no migrations executed.
+- `npm run migrate:undo` → reverted; status → `down`; `npm run migrate` → reapplied cleanly. This also caught and fixed a missing `audit_logs` table in the first `down` pass.
+- `npm run verify:db` → all nine tables have the required columns; all five enum value sets match; `schema_migrations` recorded one applied migration.
+- `npm run verify:models` → writes, internal phone read, public allow-list, bad-split constraint and rollback all passed.
+- `npm run verify:cache` → Redis set/get/delete round-trip succeeded.
+- API booted with database and Redis unset: `GET /health` returned 200 with `database: false`, `redis: false`, `paystack: false`.
+- `npm audit` still reports seven moderate advisories in Sequelize CLI transitive dependencies. No non-major fix is identified; revisit before launch. No secrets, `.env` files or build output staged.
+
+**Social post #5b**
+```text
+[Day 5b / building JosStay in public until 30 Nov]
+
+A correction, in public: the database was built with raw SQL, but the intended stack is Sequelize.
+
+We replaced it today. Day 5 stays in the history; Day 5b adds the fix.
+
+What shipped:
+• Sequelize v6 models for all nine tables, with camelCase fields mapped to the existing snake_case columns.
+• Sequelize CLI migrations with up/down, applied-migration tracking in schema_migrations, and DIRECT_URL preferred over the pooled URL.
+• The same schema constraints: 10% commission basis, cancellation snapshots, refund recovery fields, internal phone column and truthful verification fields.
+• A public hotel allow-list. Phone, payout and commission fields are named as internal and excluded from public reads.
+• A model check that writes demo data, proves no phone field leaks, rejects a bad commission split, then rolls back.
+• migrate:status, migrate:undo and verify:models alongside the existing checks.
+
+Why it matters:
+The ORM is not decoration. It is the boundary that decides which fields can reach a guest response. Putting that boundary in code now makes the read API safer tomorrow.
+
+Still real / still demo:
+Migrations, rollback, constraints and Redis all ran locally. No hotel is onboarded. No real photo, real phone number, live key or guest booking exists. The listings remain invented and labelled demo.
+
+Still open:
+Seven moderate npm advisories from Sequelize CLI dependencies. No safe non-major fix yet; this gets reviewed before launch.
+
+Tomorrow:
+Read API — GET hotels, a single hotel, areas and availability, with Zod-validated query params and no phone field in any public response.
+```
+
+**Next pickup:** Day 6, Stage 5 — read API. Build `GET /api/hotels`, `GET /api/hotels/:slug`, `GET /api/areas` and `GET /api/availability/:roomId` with Zod-validated query params. Use `PUBLIC_HOTEL_ATTRIBUTES` on the Sequelize models so `phone_encrypted` can never leak; map results to the shared `PublicHotel` shape.

@@ -149,7 +149,8 @@ Local file: `server/.env`. Production: Render dashboard, service rooted at `serv
 
 1. In the same Supabase **Connection string** panel choose **Session mode** (direct, usually port `5432`).
 2. Copy that URI with the same password.
-3. Needed if we use Prisma/Drizzle migrations; otherwise omit.
+3. Sequelize CLI prefers this over `DATABASE_URL` for migrations; set it in staging and production.
+4. Local development may use the same value for both URLs.
 
 ### `REDIS_URL` — [needs account]
 **Holds (10 min) and rate limits. Secret.**
@@ -302,9 +303,10 @@ Local file: `server/.env`. Production: Render dashboard, service rooted at `serv
 
 **Local schema and cache checks**
 1. Set `DATABASE_URL` for the application and `DIRECT_URL` for migrations. Both may be the same local database.
-2. From the repo root, run `npm run migrate`. Applied files are recorded in `schema_migrations`; editing an applied file is rejected rather than silently re-run.
-3. Run `npm run verify:db` to check the tables, columns and enum values against the Stage 4 plan.
-4. Set `REDIS_URL` and run `npm run verify:cache` for a set/get/delete round-trip.
+2. From the repo root, run `npm run migrate`. Sequelize CLI applies pending migrations from `server/migrations` and records filenames with timestamps in `schema_migrations`. Editing an applied migration does not re-run it; add a new migration instead.
+3. Use `npm run migrate:status` to see which migrations are up or down, and `npm run migrate:undo` only for a deliberate local rollback.
+4. Run `npm run verify:db` to check tables, columns and enum values against the Stage 4 plan, then `npm run verify:models` to exercise the ORM models, public allow-list and money split constraint inside a rolled-back transaction.
+5. Set `REDIS_URL` and run `npm run verify:cache` for a set/get/delete round-trip.
 
 Install once from the repo root: `npm install`. npm workspaces link `client`, `server` and `packages/shared` into a single `node_modules` and one lockfile.
 

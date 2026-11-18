@@ -1,60 +1,62 @@
-import { Pool, type PoolClient, type QueryResult, type QueryResultRow } from "pg";
+import { QueryTypes, Sequelize, type Transaction } from "sequelize";
 import { env } from "../env.js";
+import { defineModels, type Models } from "./models.js";
 
-let pool: Pool | undefined;
+let sequelize: Sequelize | undefined;
+let models: Models | undefined;
 
 /**
- * Lazy pool: the API can start without a database configured, but any route
- * that touches data must fail with a clear message rather than a vague error.
+ * Lazy Sequelize instance. The API can start without a database configured,
+ * but any route that touches data must fail with a clear message.
  */
-export function getPool(): Pool {
+export function getSequelize(): Sequelize {
   if (!env.DATABASE_URL) {
     throw new Error("DATABASE_URL is not set. Configure the PostgreSQL connection first.");
   }
 
-  if (!pool) {
-    pool = new Pool({
-      connectionString: env.DATABASE_URL,
-      max: 10,
-      idleTimeoutMillis: 30_000,
-      connectionTimeoutMillis: 5_000,
+  if (!sequelize) {
+    sequelize = new Sequelize(env.DATABASE_URL, {
+      dialect: "postgres",
+      logging: false,
+      define: {
+        underscored: true,
+        freezeTableName: true,
+      },
     });
+    models = defineModels(sequelize);
   }
 
-  return pool;
+  return sequelize;
 }
 
-export function query<T extends QueryResultRow = QueryResultRow>(
-  text: string,
-  values: readonly unknown[] = [],
-): Promise<QueryResult<T>> {
-  return getPool().query<T>(text, values as unknown[]);
+export function getModels(): Models {
+  getSequelize();
+  if (!models) throw new Error("Sequelize models were not initialised.");
+  return models;
+}
+
+export async function query<T>(
+  sql: string,
+  replacements: Record<string, unknown> | unknown[] = {},
+): Promise<T[]> {
+  const rows = await getSequelize().query(sql, {
+    replacements,
+    type: QueryTypes.SELECT,
+  });
+  return rows as T[];
 }
 
 export async function withTransaction<T>(
-  work: (client: PoolClient) => Promise<T>,
+  work: (transaction: Transaction) => Promise<T>,
 ): Promise<T> {
-  const client = await getPool().connect();
-
-  try {
-    await client.query("BEGIN");
-    const result = await work(client);
-    await client.query("COMMIT");
-    return result;
-  } catch (error) {
-    try {
-      await client.query("ROLLBACK");
-    } catch {
-      // The original error is the useful one if the connection died mid-rollback.
-    }
-    throw error;
-  } finally {
-    client.release();
-  }
+  return getSequelize().transaction(work);
 }
 
 export async function closePool(): Promise<void> {
-  if (!pool) return;
-  await pool.end();
-  pool = undefined;
+  if (!sequelize) return;
+  await sequelize.close();
+  sequelize = undefined;
+  models = undefined;
 }
+
+export const closeDatabase = closePool;

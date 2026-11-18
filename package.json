@@ -16,7 +16,10 @@
     "start:server": "npm run start -w @josstay/server",
     "typecheck": "npm run typecheck -w @josstay/shared && npm run typecheck -w @josstay/client && npm run typecheck -w @josstay/server",
     "migrate": "npm run migrate -w @josstay/server",
+    "migrate:undo": "npm run migrate:undo -w @josstay/server",
+    "migrate:status": "npm run migrate:status -w @josstay/server",
     "verify:db": "npm run verify:db -w @josstay/server",
+    "verify:models": "npm run verify:models -w @josstay/server",
     "verify:cache": "npm run verify:cache -w @josstay/server"
   },
   "devDependencies": {

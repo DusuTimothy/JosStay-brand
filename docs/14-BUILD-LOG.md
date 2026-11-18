@@ -13,7 +13,7 @@
 | 2b | 18 Nov | 1b — Monorepo layout | **Done** | #2 |
 | 3 | 19 Nov | 2 — Demo data | **Done** | #3 |
 | 4 | 20 Nov | 3 — Truth on pages | **Done** | #4 |
-| 5 | 21 Nov | 4 — Backend schema | Pending | — |
+| 5 | 21 Nov | 4 — Backend schema | **Done** | #5 |
 | 6 | 22 Nov | 5 — Read API | Pending | — |
 | 7 | 23 Nov | 6 — Booking core | Pending | — |
 | 8 | 24 Nov | 7 — Paystack split | Pending | — |
@@ -275,4 +275,60 @@ Tomorrow:
 Backend schema — the PostgreSQL tables, migrations and refund-recovery fields the rest of the build will sit on.
 ```
 
-**Next pickup:** Day 5, Stage 4 — backend schema. Create the PostgreSQL tables and migrations from `docs/02-BACKEND-ARCHITECTURE.md` §3, add the Redis client and the refund recovery fields, and run migrations locally. Keep the public API shape free of phone data; next stage builds the read endpoints on top.
+**Next pickup (superseded by the Day 5 entry below):** Day 5, Stage 4 — backend schema. Create the PostgreSQL tables and migrations from `docs/02-BACKEND-ARCHITECTURE.md` §3, add the Redis client and the refund recovery fields, and run migrations locally. Keep the public API shape free of phone data; next stage builds the read endpoints on top.
+
+---
+
+## Day 5 — Saturday 21 November 2026 · Stage 4: Backend schema
+
+**Status:** Done
+
+**What we did**
+- Added `server/migrations/0001_initial.sql`, covering all nine tables in `02-BACKEND-ARCHITECTURE.md` §3: `areas`, `hotels`, `rooms`, `verifications`, `bookings`, `holds`, `blocks`, `refunds` and `audit_logs`. Areas come first because hotel rows point at them.
+- Built the table with the decisions already locked: `commission_bps` defaults to 1000 (10%); `paystack_subaccount_code` and `subaccount_verified_at` support the verified-before-publish gate; `phone_encrypted` is marked internal-only in a column comment; bookings snapshot both `policy_template_snapshot` and `policy_deadline_at`.
+- Added every refund recovery field from `11-PAYSTACK-SPLIT-REFUND-CONFIRMATION.md`: `recovery_status`, `recovery_due_at`, `recovery_notified_at`, `recovered_kobo` and `fee_lost_kobo`, plus `hotel_share_kobo` so a partial refund can describe the portion owed by the hotel. `open` means the hotel share was already paid out and must be collected contractually.
+- Added a checksummed migration runner. It prefers `DIRECT_URL` over the pooled `DATABASE_URL`, takes an advisory lock, records applied files in `schema_migrations`, skips files already applied, and refuses to run if an applied file's checksum changed. A new change needs a new migration, not a silent rewrite.
+- Added a lazy PostgreSQL pool with a transaction helper, and a lazy Redis client that can be absent at boot but fails clearly when a caller uses it without `REDIS_URL`. Holds remain Redis-first with PostgreSQL as the durable mirror.
+- Aligned the shared booking status vocabulary with the documented state machine: `draft`, `held`, `payment_pending`, `confirmed`, `completed`, `expired`, `failed`, `cancelled`, `refund_pending`, `refunded`, `no_show`. Added shared refund and recovery status schemas for later admin and reconciliation work.
+- Added root commands `npm run migrate`, `npm run verify:db` and `npm run verify:cache`. The schema verifier checks required columns, enum values and the migration count so "tables match the doc" is a repeatable check.
+- Updated the status lines in `02-BACKEND-ARCHITECTURE.md` and `03-AI-FOR-EASE.md`, which still claimed no code had changed, and documented the local migration commands in `12-ENVIRONMENT-KEYS.md`.
+
+**Files touched**
+New: `server/migrations/0001_initial.sql`, `server/src/db/client.ts`, `server/src/db/migrate.ts`, `server/src/db/verify-schema.ts`, `server/src/cache/redis.ts`, `server/src/cache/verify.ts`.
+Changed: `package.json`, `package-lock.json`, `server/package.json`, `server/src/env.ts`, `packages/shared/src/index.ts`, `docs/02-BACKEND-ARCHITECTURE.md`, `docs/03-AI-FOR-EASE.md`, `docs/12-ENVIRONMENT-KEYS.md` and this file.
+
+**Verification**
+- `npm run typecheck` → clean in all three workspaces; `npm run build` → clean.
+- Ran throwaway local containers from the already-present `postgres:15` and `redis:latest` images. No credentials were written to the repo; no `.env` file was created.
+- First `npm run migrate` → `applied 0001_initial.sql`. Second run → `skipped 0001_initial.sql (already applied)`. Deliberate checksum drift against the applied filename → rejected with a clear instruction to create a new migration.
+- `npm run verify:db` → all nine tables have the required columns; all five enum types have the required values; `schema_migrations` recorded one applied file.
+- `npm run verify:cache` → Redis set/get/delete round-trip succeeded.
+- Constraint smoke test in a rolled-back transaction: inserted a demo area, hotel, room, confirmed booking and an open refund with `fee_lost_kobo`; verified the 10/90 split and 7-day recovery due date. A deliberately wrong split was rejected by `bookings_split_adds_up`.
+- API still boots without database or cache configured: `GET /health` returned 200 with `database: false`, `redis: false`, `paystack: false`. Env parsing confirmed literal `false` strings become false for the boolean flags.
+- No secrets, `.env` files, build output or AI-authorship remarks staged.
+
+**Social post #5**
+```text
+[Day 5 / building JosStay in public until 30 Nov]
+
+The database now has a shape, and the shape carries the decisions.
+
+What we shipped today:
+• PostgreSQL tables for hotels, rooms, areas, agent reports, bookings, holds, blocks, refunds and audit logs.
+• Migration tooling that records what ran, skips it next time, and refuses an edited migration that a database has already applied.
+• The refund recovery fields: open or recovered status, the amount collected, a 7-day due date, and the non-refundable Paystack fee JosStay absorbs.
+• Bookings snapshot the cancellation rule and its deadline, so a hotel changing its policy later cannot rewrite an old booking.
+• A lazy Redis client for short-lived holds, with PostgreSQL as the durable record.
+• Repeatable checks: `npm run migrate`, `npm run verify:db`, `npm run verify:cache`.
+
+Why it matters:
+A promise is only as strong as the field behind it. "Verified" needs an inspection date. "10% commission" needs a stored basis. "We recover the hotel's share" needs a queue and an amount. Those fields now exist before any endpoint or payment is wired.
+
+Still real / still demo:
+The tables ran locally and the constraints were tested. No hotel is onboarded. No real phone number, real photo, live key or guest booking exists. The site still shows four invented stays.
+
+Tomorrow:
+Read API — GET endpoints for hotels, a single hotel, areas and availability, with Zod-validated query parameters and no phone field in any public response.
+```
+
+**Next pickup:** Day 6, Stage 5 — read API. Build `GET /api/hotels`, `GET /api/hotels/:slug`, `GET /api/areas` and `GET /api/availability/:roomId` with Zod-validated query params. Use an explicit public column list so `phone_encrypted` can never leak; map rows to the shared `PublicHotel` shape.

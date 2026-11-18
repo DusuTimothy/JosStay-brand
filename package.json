@@ -14,7 +14,10 @@
     "build:shared": "npm run build -w @josstay/shared",
     "start": "npm run start -w @josstay/client",
     "start:server": "npm run start -w @josstay/server",
-    "typecheck": "npm run typecheck -w @josstay/shared && npm run typecheck -w @josstay/client && npm run typecheck -w @josstay/server"
+    "typecheck": "npm run typecheck -w @josstay/shared && npm run typecheck -w @josstay/client && npm run typecheck -w @josstay/server",
+    "migrate": "npm run migrate -w @josstay/server",
+    "verify:db": "npm run verify:db -w @josstay/server",
+    "verify:cache": "npm run verify:cache -w @josstay/server"
   },
   "devDependencies": {
     "typescript": "5.9.3"

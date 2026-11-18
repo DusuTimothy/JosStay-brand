@@ -1,6 +1,6 @@
 # JosStay — AI For Ease
 
-**Status:** Proposed scope. No code has been changed.
+**Status:** Scope locked. The guest UI preview shipped in Stage 3; model integration is not connected.
 **Date:** 17 November 2026
 
 ---

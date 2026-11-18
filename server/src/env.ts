@@ -1,5 +1,10 @@
 import { z } from "zod";
 
+const BooleanFromEnv = z.union([
+  z.boolean(),
+  z.enum(["true", "false"]).transform((value) => value === "true"),
+]);
+
 /** Configuration shared by the whole platform. Per-hotel values live in the database. */
 export const EnvSchema = z
   .object({
@@ -12,9 +17,15 @@ export const EnvSchema = z
     ALLOWED_ORIGINS: z.string().min(1).default("http://localhost:4300"),
     LOG_LEVEL: z.enum(["debug", "info", "warn", "error"]).default("debug"),
     DATABASE_URL: z.string().min(1).optional(),
+    DIRECT_URL: z.string().min(1).optional(),
     REDIS_URL: z.string().min(1).optional(),
     PAYSTACK_SECRET_KEY: z.string().min(1).optional(),
     PAYSTACK_ENV: z.enum(["test", "live"]).default("test"),
+    COMMISSION_BPS: z.coerce.number().int().min(0).max(10000).default(1000),
+    HOLD_TTL_MINUTES: z.coerce.number().int().min(1).max(60).default(10),
+    REFUND_RECOVERY_DAYS: z.coerce.number().int().min(1).max(90).default(7),
+    SUBACCOUNT_VERIFICATION_REQUIRED: BooleanFromEnv.default(true),
+    DEMO_MODE: BooleanFromEnv.default(true),
   })
   .superRefine((value, ctx) => {
     const key = value.PAYSTACK_SECRET_KEY;

@@ -300,6 +300,12 @@ Local file: `server/.env`. Production: Render dashboard, service rooted at `serv
 2. From the repo root, `npm run dev:server` serves the API on port 10000.
 3. Use Paystack test keys only.
 
+**Local schema and cache checks**
+1. Set `DATABASE_URL` for the application and `DIRECT_URL` for migrations. Both may be the same local database.
+2. From the repo root, run `npm run migrate`. Applied files are recorded in `schema_migrations`; editing an applied file is rejected rather than silently re-run.
+3. Run `npm run verify:db` to check the tables, columns and enum values against the Stage 4 plan.
+4. Set `REDIS_URL` and run `npm run verify:cache` for a set/get/delete round-trip.
+
 Install once from the repo root: `npm install`. npm workspaces link `client`, `server` and `packages/shared` into a single `node_modules` and one lockfile.
 
 **Vercel**

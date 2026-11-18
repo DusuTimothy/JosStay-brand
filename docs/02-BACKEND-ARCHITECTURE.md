@@ -1,6 +1,6 @@
 # JosStay — Backend Architecture
 
-**Status:** Proposed design. No code has been changed.
+**Status:** Design locked. Stage 4 implements §3; later sections remain the build target.
 **Date:** 17 November 2026
 
 ---

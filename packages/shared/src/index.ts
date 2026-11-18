@@ -67,14 +67,38 @@ export const GuestCheckoutSchema = z
 export type GuestCheckout = z.infer<typeof GuestCheckoutSchema>;
 
 export const BookingStatusSchema = z.enum([
-  "hold_pending",
-  "hold_expired",
+  "draft",
+  "held",
   "payment_pending",
   "confirmed",
+  "completed",
+  "expired",
+  "failed",
   "cancelled",
+  "refund_pending",
   "refunded",
+  "no_show",
 ]);
 export type BookingStatus = z.infer<typeof BookingStatusSchema>;
+
+/** Paystack refund state. Guest copy stays "refund initiated" until completed. */
+export const RefundStatusSchema = z.enum([
+  "initiated",
+  "processing",
+  "completed",
+  "failed",
+]);
+export type RefundStatus = z.infer<typeof RefundStatusSchema>;
+
+/** open means the hotel share was paid out and must be collected separately. */
+export const RecoveryStatusSchema = z.enum([
+  "none",
+  "open",
+  "recovering",
+  "recovered",
+  "written_off",
+]);
+export type RecoveryStatus = z.infer<typeof RecoveryStatusSchema>;
 
 /** Internal booking record. Guest-facing confirmation is a separate, reduced view. */
 export const BookingSchema = z.object({

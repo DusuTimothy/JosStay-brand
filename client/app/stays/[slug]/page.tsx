@@ -14,7 +14,6 @@ import {
   MapPin,
   ShieldCheck,
   Sparkles,
-  Star,
   Users,
   Zap,
   Ban,
@@ -43,8 +42,8 @@ export async function generateMetadata({
   if (!stay) return { title: "Stay not found" };
 
   return {
-    title: `${stay.name} — ${stay.area}, Jos`,
-    description: `${stay.tagline}. ${stay.bedrooms} bedroom${stay.bedrooms > 1 ? "s" : ""}, sleeps ${stay.guests}. ${stay.power}. Inspected and managed by JosStay.`,
+    title: `${stay.name} — ${stay.area}, Jos (demo)`,
+    description: `${stay.tagline}. ${stay.bedrooms} bedroom${stay.bedrooms > 1 ? "s" : ""}, sleeps ${stay.guests}. Demo listing — no inspection has taken place.`,
     openGraph: {
       title: `${stay.name} — JosStay`,
       description: stay.tagline,
@@ -92,20 +91,14 @@ export default async function StayPage({ params }: { params: Promise<{ slug: str
           <div className="min-w-0">
             <h1 className="text-title text-obsidian">{stay.name}</h1>
             <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[0.8125rem] text-zinc-600">
-              <span className="inline-flex items-center gap-1 font-semibold text-obsidian">
-                <Star className="size-3.5 fill-obsidian text-obsidian" aria-hidden="true" />
-                {stay.rating.toFixed(2)}
-                <span className="font-normal text-zinc-500">({stay.reviews} reviews)</span>
-              </span>
-              <span aria-hidden="true" className="size-1 rounded-full bg-zinc-300" />
               <span className="inline-flex items-center gap-1">
                 <MapPin className="size-3.5 text-pine-700" aria-hidden="true" />
                 {stay.area}, Jos
               </span>
               <span aria-hidden="true" className="size-1 rounded-full bg-zinc-300" />
-              <Badge tone="verified" size="sm">
+              <Badge tone="warning" size="sm">
                 <Check className="size-3" aria-hidden="true" />
-                JosStay Verified
+                Demo listing
               </Badge>
             </div>
           </div>
@@ -137,13 +130,13 @@ export default async function StayPage({ params }: { params: Promise<{ slug: str
                     Hosted by the JosStay team
                   </p>
                   <p className="mt-0.5 text-[0.8125rem] text-zinc-500">
-                    Inspected 9 November 2026 · {stay.reviews} stays hosted
+                    {stay.verification.note}
                   </p>
                 </div>
               </div>
               <p className="inline-flex items-center gap-1.5 text-[0.75rem] font-semibold text-pine-800">
                 <Sparkles className="size-3.5 text-emerald-600" aria-hidden="true" />
-                Photos from inspection day
+                Illustrative sample photos
               </p>
             </section>
 
@@ -166,11 +159,9 @@ export default async function StayPage({ params }: { params: Promise<{ slug: str
                 The JosStay take
               </p>
               <p className="mt-2 text-[0.9375rem] leading-relaxed text-pine-900">
-                {stay.area} is our most requested area, and this is the unit we
-                send people to when they say “I just want it to work.” The power
-                is genuinely 24/7 — we tested it with the mains off. The second
-                bedroom is the weak point: it shares the hall bathroom, so it
-                suits children or a colleague more than two couples.
+                This is a demo listing used to show how a JosStay page reads.
+                {stay.tagline} No inspection has taken place, so nothing here is
+                a verified claim about a real property.
               </p>
             </section>
 
@@ -178,18 +169,18 @@ export default async function StayPage({ params }: { params: Promise<{ slug: str
             <section aria-label="Verification details" className="divide-y divide-zinc-200">
               <TrustRow
                 icon={<ShieldCheck className="size-5" />}
-                title="Inspected, not just listed"
-                body="A JosStay team member walked this property on 9 November 2026, photographed every room, and signed off the record you see below."
+                title="Inspection pending"
+                body={stay.verification.note}
               />
               <TrustRow
                 icon={<Zap className="size-5" />}
                 title={stay.power}
-                body="Power was tested with the mains disconnected. We state what the backup actually runs — lights, fans, Wi-Fi and the fridge — not what the owner hopes it runs."
+                body="This is a sample power note. A real listing only carries a 24/7 claim after an agent has tested the backup with the mains off."
               />
               <TrustRow
                 icon={<Lock className="size-5" />}
                 title={stay.security}
-                body="Gate, guards and CCTV are checked on the same visit. The exact address and access code are shared only after your booking is confirmed."
+                body="Sample security note. On a real listing, gate, guards and CCTV are checked on the inspection visit. The exact address is shared only after a confirmed booking."
               />
             </section>
 
@@ -258,19 +249,19 @@ export default async function StayPage({ params }: { params: Promise<{ slug: str
                 Inspection record
               </h2>
               <p className="mt-1.5 text-[0.875rem] text-zinc-600">
-                The same record our team signs off. If something changes, the date
-                changes with it.
+                This demo has no agent report. Real listings show the signed
+                record here, with the inspection date and any open issues.
               </p>
 
               <dl className="mt-4 overflow-hidden rounded-xl border border-zinc-200 bg-white">
                 {[
-                  ["Last inspected", "9 November 2026"],
-                  ["Inspected by", "JosStay — Guest Experience"],
-                  ["Photos", `${stay.photos.length} images, shot by JosStay`],
+                  ["Last inspected", "Not inspected"],
+                  ["Agent report", "None"],
+                  ["Photos", `${stay.photos.length} illustrative images`],
                   ["Power", stay.power],
                   ["Security", stay.security],
-                  ["Cleanliness score", "4.9 / 5"],
-                  ["Open issues", "None"],
+                  ["Verification status", stay.verification.label],
+                  ["Cancellation template", stay.policy.label],
                 ].map(([k, v], i) => (
                   <div
                     key={k}
@@ -286,9 +277,9 @@ export default async function StayPage({ params }: { params: Promise<{ slug: str
                 ))}
               </dl>
 
-              <div className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-[0.75rem] font-bold text-pine-800 ring-1 ring-inset ring-emerald-200">
-                <span aria-hidden="true" className="size-1.5 rounded-full bg-emerald-500" />
-                Passed inspection
+              <div className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-[#FEF3E2] px-3 py-1 text-[0.75rem] font-bold text-warning ring-1 ring-inset ring-[#F5D9B0]">
+                <span aria-hidden="true" className="size-1.5 rounded-full bg-warning" />
+                Not inspected — demo
               </div>
             </section>
 
@@ -328,15 +319,11 @@ export default async function StayPage({ params }: { params: Promise<{ slug: str
                   <ul className="mt-2 space-y-2 text-[0.875rem] text-zinc-700">
                     <li className="flex items-start gap-2">
                       <ShieldCheck className="mt-0.5 size-4 shrink-0 text-pine-700" aria-hidden="true" />
-                      Free cancellation up to 72 hours before check-in
+                      {stay.policy.label}: {stay.policy.summary}
                     </li>
                     <li className="flex items-start gap-2">
                       <Check className="mt-0.5 size-4 shrink-0 text-pine-700" aria-hidden="true" />
-                      50% refund between 72 and 24 hours
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <Ban className="mt-0.5 size-4 shrink-0 text-pine-700" aria-hidden="true" />
-                      No refund inside 24 hours, except the JosStay Promise
+                      Prices are all-in for the guest — no separate service fee.
                     </li>
                     <li className="flex items-start gap-2">
                       <MessageCircle className="mt-0.5 size-4 shrink-0 text-pine-700" aria-hidden="true" />
@@ -370,9 +357,9 @@ export default async function StayPage({ params }: { params: Promise<{ slug: str
                     {stay.area}, Jos
                   </p>
                   <p className="mt-2 max-w-lg text-[0.9375rem] leading-relaxed text-white/85">
-                    Quiet residential streets, five minutes from the Rayfield
-                    roundabout and ten from the city centre. Exact address, gate
-                    code and driver directions are sent with your confirmation.
+                    This demo shows the area only. On a real booking, the exact
+                    address, map pin, gate code and the hotel phone are sent with
+                    your confirmation.
                   </p>
                   <p className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-[0.75rem] font-semibold text-white backdrop-blur-sm">
                     <Lock className="size-3" aria-hidden="true" />
@@ -384,38 +371,14 @@ export default async function StayPage({ params }: { params: Promise<{ slug: str
 
             {/* Reviews summary */}
             <section aria-labelledby="reviews-heading" className="border-t border-zinc-200 pt-7">
-              <h2 id="reviews-heading" className="flex items-center gap-2 text-section text-obsidian">
-                <Star className="size-5 fill-obsidian text-obsidian" aria-hidden="true" />
-                {stay.rating.toFixed(2)} · {stay.reviews} reviews
+              <h2 id="reviews-heading" className="text-section text-obsidian">
+                Reviews
               </h2>
               <p className="mt-1.5 text-[0.875rem] text-zinc-600">
-                Reviews are collected by JosStay after checkout, on WhatsApp.
-                We don't delete negative ones — we reply to them.
+                No reviews yet. This is demo content, so no rating or review count
+                is shown. Real reviews are collected after checkout and are never
+                invented.
               </p>
-
-              <div className="mt-4 grid gap-x-8 gap-y-2 sm:grid-cols-2">
-                {[
-                  ["Cleanliness", 4.9],
-                  ["Accuracy", 4.9],
-                  ["Check-in", 4.8],
-                  ["Communication", 5.0],
-                  ["Location", 4.8],
-                  ["Value", 4.7],
-                ].map(([label, score]) => (
-                  <div key={String(label)} className="flex items-center gap-3">
-                    <span className="w-28 shrink-0 text-[0.8125rem] text-zinc-600">{label}</span>
-                    <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-zinc-200">
-                      <span
-                        className="block h-full rounded-full bg-pine-800"
-                        style={{ width: `${(Number(score) / 5) * 100}%` }}
-                      />
-                    </span>
-                    <span className="w-8 shrink-0 text-right text-[0.8125rem] font-semibold text-obsidian tabular">
-                      {Number(score).toFixed(1)}
-                    </span>
-                  </div>
-                ))}
-              </div>
             </section>
 
             <Link
@@ -431,8 +394,8 @@ export default async function StayPage({ params }: { params: Promise<{ slug: str
           <aside className="min-w-0">
             <BookingWidget stay={stay} />
             <p className="mt-3 px-2 text-center text-[0.75rem] leading-snug text-zinc-500">
-              From {naira(stay.nightly)} per night · prices in NGN · Paystack
-              handles the payment, JosStay handles the stay.
+              From {naira(stay.nightly)} per night · demo price in NGN · no
+              payment is connected in this preview.
             </p>
           </aside>
         </div>

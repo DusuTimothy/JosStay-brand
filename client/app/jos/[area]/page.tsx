@@ -119,7 +119,7 @@ export default async function AreaPage({ params }: { params: Promise<{ area: str
           ) : (
             <MapPin className="size-3.5" aria-hidden="true" />
           )}
-          {isFeature ? "Verified feature" : "Neighbourhood guide"}
+          {isFeature ? "Feature guide" : "Neighbourhood guide"}
         </p>
         <h1 className="mt-2 text-display-hero text-obsidian">
           {isFeature ? "Stays with 24/7 power" : `Stays in ${found.name}`}

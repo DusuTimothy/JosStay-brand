@@ -6,11 +6,11 @@ import { SiteFooter } from "@/components/layout/site-footer";
 export const metadata: Metadata = {
   metadataBase: new URL("https://josstay.ng"),
   title: {
-    default: "JosStay — Verified stays in Jos",
+    default: "JosStay — Hotel stays in Jos (demo)",
     template: "%s · JosStay",
   },
   description:
-    "Every JosStay is checked before it goes live: photographed by us, power-verified, and backed by the JosStay Promise. Book shortlets and hotel rooms in Jos, Plateau State.",
+    "A demo preview of a verifiable hotel marketplace for Jos. Real listings will carry dated inspection reports, power tests and all-in pricing.",
   keywords: [
     "Jos shortlets",
     "Jos apartments",
@@ -24,9 +24,9 @@ export const metadata: Metadata = {
     locale: "en_NG",
     url: "https://josstay.ng",
     siteName: "JosStay",
-    title: "JosStay — Verified stays in Jos",
+    title: "JosStay — Hotel stays in Jos (demo)",
     description:
-      "Checked, photographed and power-verified before it goes live. Book Jos stays with confidence.",
+      "Demo listings only. No hotel is live and no payment is connected yet.",
   },
   robots: { index: true, follow: true },
 };

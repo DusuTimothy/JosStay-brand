@@ -11,7 +11,7 @@
 | 1 | 17 Nov | 0 — Docs locked | **Done** | #0 |
 | 2 | 18 Nov | 1 — Foundation | **Done** | #1 |
 | 2b | 18 Nov | 1b — Monorepo layout | **Done** | #2 |
-| 3 | 19 Nov | 2 — Demo data | Pending | — |
+| 3 | 19 Nov | 2 — Demo data | **Done** | #3 |
 | 4 | 20 Nov | 3 — Truth on pages | Pending | — |
 | 5 | 21 Nov | 4 — Backend schema | Pending | — |
 | 6 | 22 Nov | 5 — Read API | Pending | — |
@@ -168,4 +168,56 @@ Tomorrow:
 Demo hotel data in the shared shape, with areas and honest verification fields.
 ```
 
-**Next pickup:** Day 3, Stage 2 — in `client/lib/data.ts`, remodel demo listings into the shared `Hotel` shape. Add 3–5 clearly labelled demo hotels, areas derived from hotel data, and policy/verification fields. Do not touch components or the design system; home and search must render as before.
+**Next pickup (superseded by the Day 3 entry below):** Day 3, Stage 2 — remodel `client/lib/data.ts` into the shared `Hotel` shape.
+
+---
+
+## Day 3 — Thursday 19 November 2026 · Stage 2: Demo data
+
+**Status:** Done
+
+**What we did**
+- Rebuilt `client/lib/data.ts` around the shared `Hotel` schema from `@josstay/shared`. The four demo hotels are parsed with `HotelSchema.parse()` at module load, so a malformed record fails the build instead of leaking onto a page.
+- Added four clearly labelled demo hotels — The Rayfield Garden Apartment, Lamingo Skyline Suite, Little Rayfield Courtyard and Bukuru Hillside Hotel — each with the agreed price, a policy template and a `demo: true` flag. Prices are held in kobo in the canonical record and converted once for the existing UI.
+- Derived `AREAS` from the hotel records instead of hand-writing a list. Counts come from the data, so no area claims inventory that does not exist. The 24/7 Power chip is a feature filter over the same records, not a place.
+- Added a policy view (Flexible, Moderate, Strict) and an honest verification view. Every demo hotel has `verificationStatus` unset, so the UI reads "Not inspected — demo" and claims no badge, no inspection date and no agent report.
+- Kept the public shape clean: `PUBLIC_HOTELS` runs through `toPublicHotel()`, and `Stay` extends `PublicHotel`. A runtime check confirmed neither `PUBLIC_HOTELS` nor `STAYS` carries a `phone` or `phoneEncrypted` key.
+- Removed invented trust signals from the rendered pages: star ratings, review counts and category scores, "JosStay Verified" and "Passed inspection" badges, a fixed "inspected 9 November 2026" date, the guest-facing service-fee line, and the "we re-house you or refund you" promise. These were demo placeholders that read as real claims.
+- Updated page copy and metadata to say this is a demo preview with sample photos, no connected payments and no inspection. Cancellation now displays the hotel's actual template. The "Book by chat with JosStay" fallback remains in the booking widget.
+- Component structure and the design system are unchanged; only the fields and copy that carried false claims were edited.
+
+**Files touched**
+`client/lib/data.ts`, `client/app/page.tsx`, `client/app/layout.tsx`, `client/app/stays/[slug]/page.tsx`, `client/app/jos/[area]/page.tsx`, `client/components/home/stay-card.tsx`, `client/components/stay/availability.tsx`, `client/components/stay/booking-widget.tsx` and this file.
+
+**Verification**
+- `npm run typecheck` → clean in all three workspaces.
+- `npm run build` → shared build clean; Next.js production build compiled all 27 pages; server build clean.
+- Data check via `tsx`: 4 stays, all `demo: true`; no `phone`/`phoneEncrypted` key in public or view data; no `rating`/`reviews`/`badge`/`serviceFeeRate` fields; areas derived as Rayfield 1, Lamingo 1, Little Rayfield 1, Bukuru 1, 24/7 Power 4; all three policy templates present; kobo-to-naira conversion consistent.
+- Served the production build: home and all four stay pages returned HTTP 200. Rendered HTML contained "Demo listing" and "Not inspected — demo" and none of the forbidden strings (verified badge, fake ratings, service fee, old inspection date, re-house promise, passed-inspection pill).
+- Confirmed all three policy summaries render as visible text in the built HTML (Flexible, Moderate and Strict).
+- No `.env` files, secrets, AI-authorship remarks or build output staged.
+
+**Social post #3**
+```text
+[Day 3 / building JosStay in public until 30 Nov]
+
+The demo data now obeys the same rules as the real thing.
+
+What we shipped today:
+• Demo listings moved into the shared Hotel schema, validated at build time — a bad record fails the build instead of reaching a page.
+• Four clearly labelled demo hotels with real prices, cancellation templates and honest verification fields.
+• Areas are derived from the hotels themselves. No neighbourhood claims inventory that isn't there.
+• Removed the fake ratings, review counts and "verified" badges that came with the starter UI. Nothing in the demo now claims an inspection that never happened.
+• Public data still has no phone number field — checked at runtime, not just by convention.
+
+Why it matters:
+A trust marketplace cannot ship with borrowed trust signals. If the demo says "verified" when nobody inspected the property, the badge means nothing on day one. We took the shortcuts out before they became habits.
+
+Still real / still demo:
+Four invented hotels, illustrative photos, sample availability and no connected payment. No hotel is live and no booking can be made.
+
+Tomorrow:
+Truth on pages — new home copy, a real verification panel, policy and deadline display, and a UI box for the AI booking question.
+```
+
+**Next pickup:** Day 4, Stage 3 — truth on pages. Rework home copy, trust strip and search box, add a verification panel with dated agent-report fields, show cancellation policy and booking deadline, add demo pills and the AI question box UI. Do not claim verification, rating or availability that no record supports; confirm again that no phone appears in public data.

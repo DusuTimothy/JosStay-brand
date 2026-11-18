@@ -7,7 +7,6 @@ import {
   Minus,
   Plus,
   ShieldCheck,
-  Star,
   Zap,
   X,
   MessageCircle,
@@ -37,9 +36,8 @@ export function BookingWidget({ stay }: { stay: Stay }) {
 
   const totals = useMemo(() => {
     const subtotal = stay.nightly * billableNights;
-    const service = Math.round(subtotal * stay.serviceFeeRate);
     const cleaning = billableNights > 0 ? stay.cleaningFee : 0;
-    return { subtotal, cleaning, service, total: subtotal + cleaning + service };
+    return { subtotal, cleaning, total: subtotal + cleaning };
   }, [stay, billableNights]);
 
   const meetsMinimum = billableNights >= MIN_NIGHTS;
@@ -98,10 +96,8 @@ export function BookingWidget({ stay }: { stay: Stay }) {
               night
             </span>
           </p>
-          <span className="inline-flex items-center gap-1 text-[0.8125rem] font-semibold text-obsidian">
-            <Star className="size-3.5 fill-obsidian text-obsidian" aria-hidden="true" />
-            {stay.rating.toFixed(2)}
-            <span className="font-normal text-zinc-500">({stay.reviews})</span>
+          <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-[0.6875rem] font-bold text-zinc-600">
+            Demo listing
           </span>
         </div>
 
@@ -237,7 +233,7 @@ export function BookingWidget({ stay }: { stay: Stay }) {
         </a>
 
         <p className="mt-3 text-center text-[0.75rem] text-zinc-500">
-          You won't be charged yet
+          Demo listing — no payment is connected
         </p>
 
         {billableNights > 0 ? (
@@ -249,7 +245,6 @@ export function BookingWidget({ stay }: { stay: Stay }) {
             {stay.cleaningFee > 0 ? (
               <Row label="Cleaning fee" value={naira(totals.cleaning)} />
             ) : null}
-            <Row label="JosStay service fee" value={naira(totals.service)} />
             <div className="mt-2 flex items-baseline justify-between border-t border-zinc-200 pt-3 text-[0.875rem] font-bold text-obsidian">
               <span>Total</span>
               <span className="tabular">{naira(totals.total)}</span>
@@ -270,13 +265,13 @@ export function BookingWidget({ stay }: { stay: Stay }) {
           <p className="flex items-start gap-1.5 text-[0.75rem] leading-snug text-zinc-600">
             <ShieldCheck className="mt-0.5 size-3.5 shrink-0 text-emerald-600" aria-hidden="true" />
             <span>
-              <span className="font-semibold text-obsidian">The JosStay Promise.</span> If it
-              isn't as described, we re-house you or refund you.
+              <span className="font-semibold text-obsidian">The JosStay Promise.</span> One
+              team handles the booking and the stay support.
             </span>
           </p>
           <p className="flex items-start gap-1.5 text-[0.75rem] leading-snug text-zinc-600">
             <Zap className="mt-0.5 size-3.5 shrink-0 text-emerald-600" aria-hidden="true" />
-            <span>{stay.power} — tested on inspection day.</span>
+            <span>{stay.power} — demo note, not yet inspected.</span>
           </p>
         </div>
       </div>

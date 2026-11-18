@@ -23,8 +23,8 @@ export function Availability({ stay }: { stay: Stay }) {
         When you can stay
       </h2>
       <p className="mt-1.5 text-[0.875rem] text-zinc-600">
-        Blocked nights are struck through — those are confirmed bookings, not
-        guesswork. Minimum 2 nights.
+        Struck-through nights are sample blocks in this demo, not live
+        availability. Minimum 2 nights.
       </p>
 
       <div className="mt-4 rounded-2xl border border-zinc-200 bg-white p-4 sm:p-5">
@@ -41,7 +41,7 @@ export function Availability({ stay }: { stay: Stay }) {
             </span>
           </p>
           <p className="text-[0.8125rem] font-semibold text-pine-900 tabular sm:text-right">
-            {naira(stay.nightly * nights)} before fees
+            {naira(stay.nightly * nights)} demo estimate
           </p>
         </div>
       ) : (

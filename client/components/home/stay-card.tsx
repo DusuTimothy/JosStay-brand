@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRef, useState } from "react";
-import { Heart, Star, Zap } from "lucide-react";
+import { Heart, Zap } from "lucide-react";
 import type { Stay } from "@/lib/data";
 import { bentoPhotos } from "@/lib/data";
 import { naira } from "@/lib/format";
@@ -64,10 +64,10 @@ export function StayCard({ stay, priority = false }: { stay: Stay; priority?: bo
         {/* State badge */}
         <div className="pointer-events-none absolute left-3 top-3 flex gap-1.5">
           <span className="inline-flex items-center gap-1 rounded-full bg-white/95 px-2.5 py-1 text-[0.6875rem] font-bold text-pine-800 shadow-sm backdrop-blur-sm">
-            <span className="inline-flex size-3.5 items-center justify-center rounded-full bg-emerald-500 text-[0.5rem] text-obsidian">
-              ✓
+            <span className="inline-flex size-3.5 items-center justify-center rounded-full bg-amber-500 text-[0.5rem] text-white">
+              !
             </span>
-            {stay.badge === "Instant Book" ? "Instant Book" : "JosStay Verified"}
+            Demo listing
           </span>
           {stay.power.includes("24/7") || stay.power.includes("Solar") ? (
             <span className="hidden items-center gap-1 rounded-full bg-obsidian/85 px-2 py-1 text-[0.6875rem] font-bold text-emerald-400 backdrop-blur-sm sm:inline-flex">
@@ -125,9 +125,8 @@ export function StayCard({ stay, priority = false }: { stay: Stay; priority?: bo
           >
             {stay.name}
           </Link>
-          <span className="inline-flex shrink-0 items-center gap-0.5 text-[0.8125rem] font-semibold text-obsidian">
-            <Star className="size-3.5 fill-obsidian text-obsidian" aria-hidden="true" />
-            {stay.rating.toFixed(2)}
+          <span className="inline-flex shrink-0 rounded-full bg-zinc-100 px-2 py-0.5 text-[0.6875rem] font-bold text-zinc-600">
+            Demo
           </span>
         </div>
         <p className="text-[0.8125rem] text-zinc-500">

@@ -37,16 +37,16 @@ export default function HomePage() {
             Find a Jos stay you don’t have to double-check.
           </h1>
           <p className="mt-4 max-w-xl text-body text-white/85">
-            Every JosStay is inspected, photographed and power-verified before it
-            goes live. Book with Paystack or confirm on WhatsApp — you deal with
-            us, not a stranger.
+            A demo preview of a Jos hotel marketplace. Every real listing will
+            be inspected, photographed and power-tested before it goes live.
+            Payments are not connected in this preview.
           </p>
 
           <div className="mt-7 flex flex-wrap items-center gap-x-5 gap-y-2 text-[0.8125rem] text-white/85">
             {[
-              ["Checked in person", <ShieldCheck key="s" className="size-4 text-emerald-400" />],
-              ["24/7 power verified", <Zap key="z" className="size-4 text-emerald-400" />],
-              ["Real photos only", <Camera key="c" className="size-4 text-emerald-400" />],
+              ["Inspection reports planned", <ShieldCheck key="s" className="size-4 text-emerald-400" />],
+              ["Power claims need a test", <Zap key="z" className="size-4 text-emerald-400" />],
+              ["Sample photos in demo", <Camera key="c" className="size-4 text-emerald-400" />],
             ].map(([label, icon]) => (
               <span key={String(label)} className="inline-flex items-center gap-1.5">
                 {icon}
@@ -176,9 +176,9 @@ export default function HomePage() {
 
               <ul className="mt-6 space-y-3">
                 {[
-                  "Inspected and photographed by JosStay, not the owner",
-                  "Power backed up and tested on the day of inspection",
-                  "If it isn’t as described, we re-house you or refund you",
+                  "Each real listing will carry a dated agent report",
+                  "A 24/7 power claim only appears after a test with the mains off",
+                  "All-in guest pricing — no separate service fee",
                   "One support line for the whole stay — no middlemen",
                 ].map((item) => (
                   <li key={item} className="flex gap-2.5 text-[0.875rem] text-zinc-700">
@@ -197,7 +197,7 @@ export default function HomePage() {
             <div className="rounded-2xl border border-zinc-200 bg-white p-1.5 shadow-raised">
               <div className="rounded-xl bg-pine-900 p-6 text-white sm:p-8">
                 <p className="text-[0.75rem] font-bold uppercase tracking-[0.1em] text-emerald-400">
-                  Inspection record
+                  Listing record (demo)
                 </p>
                 <p className="mt-2 font-display text-xl font-bold">
                   The Rayfield Garden Apartment
@@ -205,12 +205,12 @@ export default function HomePage() {
 
                 <dl className="mt-5 divide-y divide-white/10">
                   {[
-                    ["Last inspected", "9 November 2026"],
-                    ["Inspected by", "JosStay — Guest Experience"],
-                    ["Photos", "12 images, shot by us"],
-                    ["Power", "Solar + inverter, 24/7 tested"],
-                    ["Security", "Gated estate, guard on duty"],
-                    ["Open issues", "None"],
+                    ["Last inspected", "Not inspected"],
+                    ["Agent report", "None"],
+                    ["Photos", "12 illustrative images"],
+                    ["Power", "Solar + inverter — sample note"],
+                    ["Security", "Gated estate — sample note"],
+                    ["Status", "Demo listing"],
                   ].map(([k, v]) => (
                     <div key={k} className="flex items-baseline justify-between gap-4 py-2.5">
                       <dt className="text-[0.8125rem] text-white/60">{k}</dt>
@@ -219,9 +219,9 @@ export default function HomePage() {
                   ))}
                 </dl>
 
-                <div className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-emerald-500/15 px-3 py-1 text-[0.75rem] font-bold text-emerald-400">
-                  <span className="size-1.5 rounded-full bg-emerald-400" />
-                  Passed inspection
+                <div className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-amber-400/15 px-3 py-1 text-[0.75rem] font-bold text-amber-300">
+                  <span className="size-1.5 rounded-full bg-amber-400" />
+                  Not inspected — demo
                 </div>
               </div>
             </div>

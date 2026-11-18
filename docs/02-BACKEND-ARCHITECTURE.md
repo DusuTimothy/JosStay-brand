@@ -47,7 +47,7 @@ Why two apps: Next.js owns fast, indexable pages; Express owns money, state and 
 
 ## 3. Database tables (essential fields)
 
-**hotels** — `id`, `slug`, `name`, `area_id`, `address`, `lat`, `lng`, `phone_encrypted` (never returned by public API), `nightly_kobo`, `policy_template`, `house_rules`, `status` (draft | pending | published), `demo`, `commission_bps` (default 1000 = 10%), `paystack_subaccount_code`.
+**hotels** — `id`, `slug`, `name`, `area_id`, `address`, `lat`, `lng`, `phone_encrypted` (never returned by public API), `contact_email` (internal only; used for hotel booking confirmations, never returned by public API), `nightly_kobo`, `policy_template`, `house_rules`, `status` (draft | pending | published), `demo`, `commission_bps` (default 1000 = 10%), `paystack_subaccount_code`.
 
 **rooms** — `id`, `hotel_id`, `name`, `total_inventory`, `sleeps`, `bed`, `ensuite`.
 
@@ -113,7 +113,8 @@ Transitions are server-side only. A browser redirect is **never** proof of payme
 3. Guest pays on Paystack.
 4. Paystack calls `POST /webhooks/paystack` with a signature; verify the hash, then check idempotency on `paystack_reference`.
 5. Inside one transaction: re-check availability, mark CONFIRMED, store `total_kobo`, `commission_kobo`, `hotel_share_kobo`.
-6. Fire email + WhatsApp confirmation with address, map pin and **hotel phone number**.
+6. Send the guest confirmation: email with address, map pin and **hotel phone number**; WhatsApp with address and map pin only — **never the phone**. The receipt page also omits the phone.
+7. Email the hotel a confirmation with booking details only — reference, guest name, dates, room, guest count and total — using its internal `contact_email`. No guest phone or email is included; the hotel escalates via JosStay.
 
 **Refunds — confirmed with Paystack, 17 Nov 2026 (see `11-PAYSTACK-SPLIT-REFUND-CONFIRMATION.md`)**
 - Follow the hotel's chosen template snapshot; store the refund amount and reason.
@@ -166,7 +167,7 @@ The four `GET` routes, `POST /api/bookings`, `POST /api/payments/initialize` and
 - Passwords hashed with bcrypt/argon2; admin and hotel roles checked on every route.
 - Webhook signature verification, idempotency keys, constant-time comparison.
 - Secrets in environment variables, never in the repo. Rotate Paystack and WhatsApp keys.
-- PII minimisation: hotel phone returned only after a confirmed booking belongs to that guest.
+- PII minimisation: the hotel phone is emailed only to the guest who made the confirmed booking; it never appears in public responses, the receipt page or WhatsApp. The hotel's internal contact email is never returned publicly, and hotel confirmation emails contain no guest phone or email.
 - Audit log for every money, status and verification change.
 - Annual dependency audit and a pre-launch penetration test.
 

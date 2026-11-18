@@ -25,8 +25,8 @@ const GROUPS: { title: string; items: { q: string; a: string }[] }[] = [
         a: "No. You can book as a guest with a name, phone number and email. The lead guest must show a government-issued ID before access is released — that is a condition of every property, not a JosStay account requirement.",
       },
       {
-        q: "Why can't I see the host or the exact address?",
-        a: "JosStay is the merchant and the manager, not a directory. The owner is our supplier; your contract is with us. The exact address, gate code and driver directions are sent after your booking is confirmed. This protects both you and the owner.",
+        q: "Why can't I see the host or the hotel phone?",
+        a: "JosStay is the merchant and the manager, not a directory. The owner is our supplier; your contract is with us. The address and map pin are public on the listing. The gate code and driver directions arrive after confirmation, and the hotel phone is emailed only to the booked guest.",
       },
       {
         q: "Can I book for someone else?",

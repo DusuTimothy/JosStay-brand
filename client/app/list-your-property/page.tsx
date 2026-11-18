@@ -121,7 +121,7 @@ export default function ListPropertyPage() {
             </h2>
             <ul className="mt-2 space-y-1.5 text-[0.875rem] text-zinc-600">
               {[
-                "Publish your name, phone number or exact address.",
+                "Publish your name or phone number.",
                 "Take a listing fee before the first booking.",
                 "Keep you locked in if the partnership isn't working.",
               ].map((item) => (

@@ -108,7 +108,7 @@ Run this end-to-end in **staging** with test keys before touching production:
 2. Guest opens a hotel → sees real name, verification record, all-in price, policy + deadline → **no phone number**.
 3. Guest selects dates → hold placed → checkout → Paystack test payment (card, transfer, USSD each once).
 4. Webhook verifies signature → booking confirmed → availability recalculated.
-5. Email + WhatsApp arrive with reference, address, pin and hotel phone.
+5. Guest email arrives with reference, address, pin and hotel phone; WhatsApp and the receipt page arrive with reference, address and pin only — no phone. The hotel receives a confirmation email with booking details only (no guest phone or email).
 6. Guest cancels → refund initiated → commission reversed (or recovery task raised if the hotel was already paid) → guest told 3–10 business days → status updates only after Paystack confirms.
 7. Two guests race for the last room → second is blocked, not double-booked.
 8. Book-by-chat link → agent receives structured summary → sends payment link.

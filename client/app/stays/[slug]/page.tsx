@@ -183,7 +183,7 @@ export default async function StayPage({ params }: { params: Promise<{ slug: str
               <TrustRow
                 icon={<Lock className="size-5" />}
                 title={stay.security}
-                body="Sample security note. On a real listing, gate, guards and CCTV are checked on the inspection visit. The exact address is shared only after a confirmed booking."
+                body="Sample security note. On a real listing, gate, guards and CCTV are checked on the inspection visit. The address and map pin are public; the hotel phone is emailed after a confirmed booking."
               />
             </section>
 
@@ -329,13 +329,14 @@ export default async function StayPage({ params }: { params: Promise<{ slug: str
                     {stay.area}, Jos
                   </p>
                   <p className="mt-2 max-w-lg text-[0.9375rem] leading-relaxed text-white/85">
-                    This demo shows the area only. On a real booking, the exact
-                    address, map pin, gate code and the hotel phone are sent with
-                    your confirmation.
+                    On a real listing, the exact address and map pin are public
+                    here so you can check the neighbourhood before you pay. The
+                    gate code arrives after confirmation, and the hotel phone is
+                    emailed only to the booked guest — never shown on the site.
                   </p>
                   <p className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-[0.75rem] font-semibold text-white backdrop-blur-sm">
-                    <Lock className="size-3" aria-hidden="true" />
-                    Address shared after booking — a JosStay rule, not a host's
+                    <MapPin className="size-3" aria-hidden="true" />
+                    Address and pin are public — the phone is not
                   </p>
                 </div>
               </div>
@@ -366,8 +367,8 @@ export default async function StayPage({ params }: { params: Promise<{ slug: str
           <aside className="min-w-0">
             <BookingWidget stay={stay} />
             <p className="mt-3 px-2 text-center text-[0.75rem] leading-snug text-zinc-500">
-              From {naira(stay.nightly)} per night · demo price in NGN · no
-              payment is connected in this preview.
+              From {naira(stay.nightly)} per night · demo price in NGN · hosted
+              checkout in Paystack test mode.
             </p>
           </aside>
         </div>

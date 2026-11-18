@@ -578,6 +578,65 @@ Tomorrow:
 Guest flow — wire checkout and the booking receipt into the client, keep Book by chat visible, and show the confirmed address, map pin and hotel phone only after payment.
 ```
 
-**Decision update (logged after Day 8):** Timothy confirmed there is no useful reason to hide a hotel's location. The **address and map pin stay public**, exactly as they are in the current API and UI. Only the **hotel phone number** is gated on a confirmed booking, and it appears on the receipt, in the email and in the WhatsApp message. This supersedes the "show the address and pin only after payment" wording in post #8 and the earlier Day 9 pickup. Locked in `01-PRODUCT-PLAN.md` §2.
+**Decision update (logged after Day 8):** Timothy confirmed there is no useful reason to hide a hotel's location. The **address and map pin stay public**, exactly as they are in the current API and UI. Only the **hotel phone number** is gated on a confirmed booking. This supersedes the "show the address and pin only after payment" wording in post #8 and the earlier Day 9 pickup. Locked in `01-PRODUCT-PLAN.md` §2.
 
-**Next pickup:** Day 9, Stage 8 — Guest flow. Wire the client to `POST /api/bookings` and `POST /api/payments/initialize`: dates and guests, all-in total, cancellation deadline, hosted Paystack redirect, and a booking receipt page that polls confirmation by reference. The address and map pin remain public as they are today; the **hotel phone number is the only field gated on a confirmed booking** — release it on the receipt, in the email and in the WhatsApp message. Keep **Book by chat with JosStay** visible at every step. No card fields on our site.
+**Decision update (logged after Day 8, second note):** Timothy confirmed two messaging details. (1) The hotel phone is **emailed only to the booked customer** — the receipt page and WhatsApp message show the address and map pin but omit the phone. This supersedes the earlier "receipt, email and WhatsApp" wording. (2) JosStay **does email the hotel after a confirmed booking**, with booking details only: reference, guest name, dates, room, guest count and total — no guest phone or email. This needs a new internal `contact_email` column on hotels and a Sequelize migration; the column is excluded from public API reads. Locked in `01-PRODUCT-PLAN.md` §2/§5.5 and `02-BACKEND-ARCHITECTURE.md` §3/§6.
+
+**Next pickup:** Day 9, Stage 8 — Guest flow. Add the internal hotel contact email (Sequelize CLI migration + model + internal-column allow-list, never public). Wire the client to `POST /api/bookings` and `POST /api/payments/initialize`: dates and guests, all-in total, cancellation deadline, hosted Paystack redirect, and a booking receipt page that polls confirmation by reference. The address and map pin stay public everywhere. The **hotel phone is emailed only to the booked guest** — receipt page and WhatsApp omit it. Send the hotel a confirmation email with booking details only on `charge.success`. Keep **Book by chat with JosStay** visible at every step. No card fields on our site.
+
+---
+
+## Day 9 — Wednesday 25 November 2026 · Stage 8: Guest flow and confirmations
+
+**Status:** Done
+
+**What we did**
+- Added a Sequelize CLI migration for `hotels.contact_email` and `bookings.whatsapp_opt_in`. Both are internal. `contact_email` was added to the internal-column list and is absent from every public hotel read; the guest-facing receipt uses the public allow-list, so neither phone nor contact email can be selected by accident.
+- Added a strict shared `BookingReceipt` contract and `GET /api/bookings/:reference/receipt`. It repeats the public address and map pin, dates, guests, all-in total and cancellation deadline. It structurally has no hotel phone, guest contact details or commission data.
+- Built the confirmation layer. The guest email contains the hotel phone; WhatsApp and the receipt page contain the address and map pin but no phone; the hotel email contains the reference, guest name, room, dates, guest count and total, with no guest phone or email. Payload builders throw if the phone leaks into WhatsApp or guest contact details leak into the hotel email.
+- Notifications fire only once a signed `charge.success` has committed the booking. Replays are acknowledged without resending. A provider failure is audited as failed and isolated: a paid booking never turns into a failed webhook. With no Brevo or WhatsApp credentials configured, the adapter logs a redacted suppression line and throws, so the audit says "failed" rather than claiming a message was sent.
+- Added `npm run verify:guest`. It writes throwaway rows, uses injected fake payment and notification clients, and checks receipt fields, email-only phone, hotel confirmation, WhatsApp opt-in, audit rows, replay no-resend and provider-failure isolation.
+- Wired the client guest flow: a typed API client that parses every response with the shared Zod schema; a checkout panel that asks only for name, email and phone plus opt-in and terms; a live room lookup by public hotel slug; `POST /api/bookings` → `POST /api/payments/initialize` → hosted Paystack redirect; and a receipt page at `/booking/confirmed` that polls by reference until the signed webhook lands. A held reference can resume payment without creating a second hold.
+- Kept **Book by chat with JosStay** visible on the listing card, inside checkout, on the receipt page and in the mobile action bar. No card field is rendered anywhere in the app.
+- Corrected copy that had stopped being true: the address and map pin are public, the hotel phone is emailed only to the booked guest, and hosted checkout is wired in Paystack test mode. Demo cleaning fees were set to zero so the displayed total matches the backend's all-in total.
+
+**Files touched**
+New: `server/migrations/20261122000000-hotel-confirmation-contacts.cjs`, `server/src/notifications/types.ts`, `server/src/notifications/client.ts`, `server/src/notifications/service.ts`, `server/src/booking/receipt.ts`, `server/src/booking/verify-guest.ts`, `client/lib/api.ts`, `client/components/booking/chat-fallback.tsx`, `client/components/booking/guest-checkout.tsx`, `client/components/booking/receipt-poller.tsx`, `client/app/booking/confirmed/page.tsx`.
+Changed: root and server `package.json`, `packages/shared/src/index.ts`, `server/src/env.ts`, `server/src/index.ts`, `server/src/api/routes.ts`, `server/src/api/booking-route.ts`, `server/src/payment/service.ts`, `server/src/payment/routes.ts`, `server/src/payment/verify.ts`, `server/src/booking/service.ts`, `server/src/db/models.ts`, `server/src/db/public-fields.ts`, `server/src/db/verify-schema.ts`, client booking widget, stay page, layout, help, legal, partner and styleguide copy, `client/lib/data.ts`, `client/lib/format.ts`, `docs/01-PRODUCT-PLAN.md`, `docs/02-BACKEND-ARCHITECTURE.md`, `docs/05-PRODUCTION-CHECKLIST.md`, `docs/12-ENVIRONMENT-KEYS.md`, `docs/13-PUBLIC-BUILD-PLAN.md` and this file.
+
+**Verification**
+- `npm run build:shared && npm run typecheck && npm run build` → clean in all three workspaces.
+- Fresh throwaway PostgreSQL on port 55433 and Redis on port 6380. No credentials written to the repo; no `.env` file created.
+- `npm run migrate` applied both migrations; a second run reported no migrations executed and `migrate:status` showed both up.
+- `npm run verify:db`, `verify:models`, `verify:cache`, `verify:api`, `verify:booking`, `verify:payments`, `verify:guest` → all passed with a throwaway `sk_test_` key and fake providers.
+- API booted with database, Redis and Paystack unset: `GET /health` returned 200 with all integration flags false.
+- No live Paystack call, no real email or WhatsApp message, no secrets or build output staged.
+
+**Social post #9**
+```text
+[Day 9 / building JosStay in public until 30 Nov]
+
+A booking is not finished when the redirect happens. It is finished when the guest knows where to go — and the hotel knows who is coming.
+
+What shipped:
+• Guest checkout now creates a held booking, starts a hosted Paystack checkout and returns to a receipt page that polls by reference until the signed webhook confirms it.
+• The receipt shows the address and map pin, dates, all-in total and cancellation deadline. It never shows the hotel phone.
+• The phone is emailed only to the booked guest. WhatsApp gets the same details without the phone.
+• The hotel gets its own confirmation email after charge.success: reference, guest name, room, dates, guest count and total. No guest phone, no guest email.
+• The hotel contact email is an internal column behind a Sequelize migration and is excluded from every public read.
+• Confirmations fire after the payment transaction commits. Replays do not resend. A broken email provider is audited as failed, but never turns a paid booking into a failed webhook.
+• Book by chat with JosStay is visible at every step. No card field lives on our site.
+
+Why it matters:
+The fastest path from "I like this place" to "I know exactly where I'm going" should not require three human conversations. It should require three fields and one hosted payment — with the private details going only to the people who need them.
+
+Still real / still demo:
+Ran against throwaway Postgres, Redis, a throwaway test key and fake notification clients. No live Paystack call, no real email, no WhatsApp message. No hotel is onboarded; the four stays remain invented and labelled demo.
+
+Caught in public:
+The site still said the exact address was shared only after booking, and the demo total included a cleaning fee the backend never charges. Both are now corrected: address and pin are public, and the guest total is all-in.
+
+Tomorrow:
+Harden the operational edges — inspect the first real hotel, wire true decryption for stored hotel phones, consent timestamps, email retries and the live-key checklist before anything goes public.
+```
+

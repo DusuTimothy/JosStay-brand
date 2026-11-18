@@ -1,8 +1,8 @@
 /**
  * Explicit allow-list for guest-facing hotel responses.
  *
- * Read routes must select only these columns. `phone_encrypted`, payout data
- * and commission settings stay internal until a confirmed booking exists.
+ * Read routes must select only these columns. `phone_encrypted`,
+ * `contact_email`, payout data and commission settings stay internal.
  */
 export const PUBLIC_HOTEL_COLUMNS = [
   "id",
@@ -22,6 +22,7 @@ export const PUBLIC_HOTEL_COLUMNS = [
 
 export const INTERNAL_HOTEL_COLUMNS = [
   "phone_encrypted",
+  "contact_email",
   "commission_bps",
   "paystack_subaccount_code",
   "subaccount_verified_at",

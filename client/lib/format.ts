@@ -46,6 +46,13 @@ export function addDays(d: Date, days: number): Date {
   return copy;
 }
 
+/** Local calendar date for API payloads. Never use toISOString(): it shifts WAT dates. */
+export function toDateOnly(d: Date): string {
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${d.getFullYear()}-${month}-${day}`;
+}
+
 /** "Fri, 14 Nov" — used in the booking card. */
 export function formatDateShort(d: Date): string {
   return new Intl.DateTimeFormat("en-NG", {

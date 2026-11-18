@@ -356,6 +356,33 @@ export const BookingReferenceSchema = z
   .trim()
   .regex(/^JS-[A-Z0-9]+$/, "Use a JosStay booking reference");
 
+/**
+ * The receipt page shape. It repeats the public address and map pin for
+ * convenience. The hotel phone belongs in the guest's email only, so it is
+ * structurally absent here along with guest contact details and money splits.
+ */
+export const BookingReceiptSchema = z
+  .object({
+    reference: BookingReferenceSchema,
+    status: BookingStatusSchema,
+    hotelSlug: SlugSchema,
+    hotelName: z.string().min(1),
+    roomName: z.string().min(1),
+    address: z.string().min(1),
+    lat: z.number(),
+    lng: z.number(),
+    checkIn: DateOnlySchema,
+    checkOut: DateOnlySchema,
+    guests: z.number().int().positive(),
+    nights: z.number().int().positive(),
+    totalKobo: z.number().int().positive(),
+    policyTemplate: PolicyTemplateSchema,
+    policyDeadlineAt: z.coerce.date(),
+    holdExpiresAt: z.coerce.date().nullable().optional(),
+  })
+  .strict();
+export type BookingReceipt = z.infer<typeof BookingReceiptSchema>;
+
 export const InitializePaymentSchema = z
   .object({
     bookingReference: BookingReferenceSchema,

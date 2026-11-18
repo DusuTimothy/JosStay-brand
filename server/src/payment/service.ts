@@ -14,6 +14,9 @@ import {
 import { writeAudit } from "../booking/audit.js";
 import { getModels, queryInTransaction, withTransaction } from "../db/client.js";
 import { env } from "../env.js";
+import { notificationClient } from "../notifications/client.js";
+import { notifyBookingConfirmed } from "../notifications/service.js";
+import type { NotificationClient } from "../notifications/types.js";
 import { paystackClient, type PaymentClient } from "./client.js";
 
 export type ChargeResult = {
@@ -94,11 +97,12 @@ async function lockBookingRow(id: string, transaction: Transaction): Promise<voi
  */
 export async function handleChargeSuccess(
   event: PaystackChargeSuccess,
+  notifications: NotificationClient = notificationClient,
 ): Promise<ChargeResult> {
   const models = getModels();
   const paystackReference = event.data.reference;
 
-  return withTransaction(async (transaction) => {
+  const result = await withTransaction(async (transaction) => {
     const existing = await models.Booking.findOne({
       where: { paystackReference },
       transaction,
@@ -151,4 +155,20 @@ export async function handleChargeSuccess(
 
     return { bookingReference, status: "confirmed" as const, idempotent: false };
   });
+
+  // Notifications run after commit. A provider failure must not turn a paid
+  // booking into a failed webhook, which would hide it from the guest.
+  if (!result.idempotent) {
+    try {
+      await notifyBookingConfirmed(result.bookingReference, notifications);
+    } catch (error) {
+      console.error(
+        `Confirmation notifications failed for ${result.bookingReference}: ${
+          error instanceof Error ? error.message : "unknown error"
+        }`,
+      );
+    }
+  }
+
+  return result;
 }

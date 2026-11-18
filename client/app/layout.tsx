@@ -26,7 +26,7 @@ export const metadata: Metadata = {
     siteName: "JosStay",
     title: "JosStay — Hotel stays in Jos (demo)",
     description:
-      "Demo listings only. No hotel is live and no payment is connected yet.",
+      "Demo listings only. Hosted checkout is wired in Paystack test mode; no hotel is live yet.",
   },
   robots: { index: true, follow: true },
 };

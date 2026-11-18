@@ -104,9 +104,9 @@ const DOCS: Record<string, LegalDoc> = {
       {
         heading: "3. What we never do",
         bullets: [
-          "We do not publish property owner names, addresses or contact details.",
+          "We do not publish property owner names or contact details. Property addresses and map pins are public on listings.",
           "We do not sell personal data.",
-          "We do not share your ID or phone number with a property owner. The owner receives the guest count and check-in time only.",
+          "We do not share your ID, phone number or email address with the hotel. The hotel receives the guest name, dates, guest count and booking total by email.",
           "We do not add you to a marketing list because you made a booking.",
         ],
       },

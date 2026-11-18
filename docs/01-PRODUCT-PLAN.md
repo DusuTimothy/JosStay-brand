@@ -25,14 +25,14 @@ We are **not** a hotel chain, not a host directory, and not a guarantor of hotel
 
 | # | Change | Consequence |
 |---|---|---|
-| 1 | **No hotel phone numbers in public** | Phone is revealed only after a confirmed booking — on the confirmation page, in the email and in the WhatsApp message. Public pages show hotel name, area, address and map pin only. |
+| 1 | **No hotel phone numbers in public** | The phone is emailed only to the booked guest after a confirmed booking. The receipt page and WhatsApp show the address and map pin but omit the phone. Public pages show hotel name, area, address and map pin only. |
 | 2 | **Commission = 10%** | Fixed platform-wide, stored per hotel so it can be changed later. Paystack subaccount split, hotel bears the Paystack fee. Guest never sees a commission line. |
 | 3 | **AI must be visible in the product** | See `03-AI-FOR-EASE.md`. Natural-language search, policy Q&A, WhatsApp assistant and photo/report checks are now first-class scope, not later ideas. |
 | 4 | **New logo: 3D house inside a plateau map** | Replaces "The Plateau Pin". See `06-LOGO-BRIEF.md` and `logo-concept.svg`. |
 | 5 | **No real hotels yet** | All listings ship in demo mode with visible labels. No invented ratings, counts or "Verified" claims. |
 | 6 | **All areas, supply-led** | Rayfield, Lamingo, Little Rayfield, Bukuru, Bodija, Jos City Centre, Terminus, Shere Hills and any new area. Areas are derived from hotel data — adding a hotel in a new area creates the page. |
 
-**Decision confirmed 18 Nov 2026:** the hotel's **address and map pin stay public** on the listing page. There is no useful reason to hide a hotel's location. The **only** field held back until a confirmed booking is the **hotel phone number**. The confirmation page, email and WhatsApp message repeat the address and pin for convenience and add the phone.
+**Decision confirmed 18 Nov 2026:** the hotel's **address and map pin stay public** on the listing page. There is no useful reason to hide a hotel's location. The **only** field held back until a confirmed booking is the **hotel phone number**. The receipt page and WhatsApp message repeat the address and pin for convenience but omit the phone; **only the guest's email** adds the hotel phone. A separate confirmation email goes to the hotel with booking details only — reference, guest name, dates, room, guest count and total — with no guest phone or email.
 
 **Unchanged and protected:** the entire UI, colour tokens, type system, bento gallery, range calendar, motion, component library and page layouts. Only content, data shape and new transactional screens change.
 
@@ -48,11 +48,11 @@ We are **not** a hotel chain, not a host directory, and not a guarantor of hotel
 | Cancellation template + deadline | Yes | Yes |
 | All-in nightly price and total | Yes | Yes |
 | Rating / review count | Only if real; hidden in demo | Yes |
-| **Hotel phone number** | **No** | **Yes** |
+| **Hotel phone number** | **No** | **Yes — guest email only** |
 | Owner / manager identity | **Never** | **Never** |
 | Agent name and full inspection report | No | No (internal only) |
 
-Why: the guest gets enough to decide, and JosStay stays the single point of contact. The hotel's number is a *fulfilment detail*, released once a booking exists.
+Why: the guest gets enough to decide, and JosStay stays the single point of contact. The hotel's number is a *fulfilment detail*, emailed only to the booked guest once a booking exists. The hotel itself is emailed a confirmation with booking details only, so no guest contact details leave JosStay.
 
 ---
 
@@ -96,7 +96,7 @@ Existing bento gallery and calendar stay. Added:
 Guest name, email, phone. Reservation summary: hotel name, room, nights, all-in total, cancellation deadline. Secure-payment indicator. **Pay with Paystack** hosted checkout (card, bank transfer, USSD). No card fields on our site. No sign-in.
 
 ### 5.5 Confirmation (new)
-Booking reference, hotel name, address, map pin, **hotel phone number**, dates, total, cancellation deadline, "Need help? Message JosStay". Sent as a page, an email (Brevo) and a WhatsApp message.
+Booking reference, hotel name, address, map pin, dates, total, cancellation deadline, "Need help? Message JosStay". The receipt page and WhatsApp message show the address and pin but **not** the phone; the guest email (Brevo) adds the **hotel phone number**. A separate confirmation email to the hotel contains booking details only — reference, guest name, dates, room, guest count and total — with no guest phone or email.
 
 ### 5.6 Book by chat
 A WhatsApp link prefilled with: *"Hi JosStay, I'd like to book [hotel] for [dates], [guests] guests."* An agent confirms availability and either sends a Paystack payment link or completes the booking manually. This is a fallback, not a bypass of the payment rules.
@@ -149,7 +149,7 @@ Nothing in demo mode may imply a real inspection, a real price or a real guest r
 | Phase | Scope | Exit condition |
 |---|---|---|
 | **1 — Truth** | Data model, demo hotels, derived areas, verification panel, hotel policy display, new copy, logo, AI question box (UI) | Every public claim is either true or labelled demo |
-| **2 — Booking** | Checkout, Paystack 10% split, webhook, confirmations (email + WhatsApp), Book by chat | A demo booking completes end-to-end in test mode |
+| **2 — Booking** | Checkout, Paystack 10% split, webhook, guest email + WhatsApp + hotel confirmation email, Book by chat | A demo booking completes end-to-end in test mode |
 | **3 — Intelligence** | AI search, policy Q&A, WhatsApp assistant, photo/report checks, JSON-LD | AI answers are grounded, logged and hand off to a human |
 | **4 — Scale** | Real hotels, real photos, maps, partner onboarding, removal of demo labels | First live hotel paid out correctly |
 

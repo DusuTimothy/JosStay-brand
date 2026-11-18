@@ -40,6 +40,7 @@ export function defineModels(sequelize: Sequelize) {
       lat: { type: DataTypes.DOUBLE, allowNull: false },
       lng: { type: DataTypes.DOUBLE, allowNull: false },
       phoneEncrypted: { type: DataTypes.TEXT, field: "phone_encrypted" },
+      contactEmail: { type: DataTypes.TEXT, field: "contact_email" },
       nightlyKobo: { type: DataTypes.BIGINT, field: "nightly_kobo", allowNull: false },
       policyTemplate: {
         type: DataTypes.ENUM("flexible", "moderate", "strict"),
@@ -154,6 +155,12 @@ export function defineModels(sequelize: Sequelize) {
       },
       policyDeadlineAt: { type: DataTypes.DATE, field: "policy_deadline_at" },
       paystackReference: { type: DataTypes.TEXT, field: "paystack_reference", unique: true },
+      whatsappOptIn: {
+        type: DataTypes.BOOLEAN,
+        field: "whatsapp_opt_in",
+        allowNull: false,
+        defaultValue: false,
+      },
       expiresAt: { type: DataTypes.DATE, field: "expires_at" },
     },
     { ...withTimestamps, tableName: "bookings" },

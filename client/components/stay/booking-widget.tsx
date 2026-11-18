@@ -18,9 +18,9 @@ import { RangeCalendar } from "@/components/booking/range-calendar";
 import { useBooking } from "@/components/booking/booking-provider";
 import { Button } from "@/components/ui/button";
 import { PolicyNote } from "@/components/stay/policy-note";
+import { ChatFallback, chatHref } from "@/components/booking/chat-fallback";
+import { GuestCheckout } from "@/components/booking/guest-checkout";
 import { cn } from "@/lib/utils";
-
-const WHATSAPP_NUMBER = "2348000000000";
 
 /** 2-night minimum is a real revenue decision: 1-nighters rarely cover turnover. */
 const MIN_NIGHTS = 2;
@@ -29,6 +29,7 @@ export function BookingWidget({ stay }: { stay: Stay }) {
   const { range, setRange, guests, setGuests } = useBooking();
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [guestsOpen, setGuestsOpen] = useState(false);
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
 
   const nights = nightsBetween(range?.from, range?.to);
@@ -42,6 +43,11 @@ export function BookingWidget({ stay }: { stay: Stay }) {
 
   const meetsMinimum = billableNights >= MIN_NIGHTS;
   const ready = Boolean(range?.from && range?.to) && meetsMinimum;
+  const totalKobo = Math.round(totals.total * 100);
+
+  useEffect(() => {
+    if (!ready) setCheckoutOpen(false);
+  }, [ready]);
 
   useEffect(() => {
     if (!calendarOpen && !guestsOpen) return;
@@ -65,12 +71,12 @@ export function BookingWidget({ stay }: { stay: Stay }) {
     };
   }, [calendarOpen, guestsOpen]);
 
-  const whatsappHref = useMemo(() => {
+  const chatDetail = useMemo(() => {
     const dateLine = range?.from
       ? formatRange(range.from, range.to)
       : "dates not selected yet";
-    const text = [
-      `Hi JosStay — I'd like to book ${stay.name} (${stay.area}, Jos).`,
+    return [
+      `I'd like to book ${stay.name} (${stay.area}, Jos).`,
       `Dates: ${dateLine}`,
       `Guests: ${guests}`,
       billableNights > 0
@@ -80,7 +86,6 @@ export function BookingWidget({ stay }: { stay: Stay }) {
     ]
       .filter(Boolean)
       .join("\n");
-    return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`;
   }, [stay, range, guests, billableNights, totals.total]);
 
   return (
@@ -210,8 +215,18 @@ export function BookingWidget({ stay }: { stay: Stay }) {
           ) : null}
         </AnimatePresence>
 
-        {ready ? (
-          <Button size="lg" full className="mt-4">
+        {checkoutOpen && ready && range?.from && range?.to ? (
+          <Button
+            size="lg"
+            full
+            variant="secondary"
+            className="mt-4"
+            onClick={() => setCheckoutOpen(false)}
+          >
+            Back to dates
+          </Button>
+        ) : ready ? (
+          <Button size="lg" full className="mt-4" onClick={() => setCheckoutOpen(true)}>
             <CreditCard className="size-4" aria-hidden="true" />
             Reserve · {naira(totals.total)}
           </Button>
@@ -222,19 +237,24 @@ export function BookingWidget({ stay }: { stay: Stay }) {
           </Button>
         )}
 
-        <a
-          href={whatsappHref}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="mt-2 inline-flex h-11 w-full items-center justify-center gap-2 rounded-md border border-whatsapp-ink/25 bg-whatsapp-soft text-[0.875rem] font-semibold text-whatsapp-ink transition-colors hover:bg-[#d7f3e4]"
-        >
-          <MessageCircle className="size-4" aria-hidden="true" />
-          Confirm on WhatsApp instead
-        </a>
+        <div className="mt-2">
+          <ChatFallback detail={chatDetail} />
+        </div>
 
         <p className="mt-3 text-center text-[0.75rem] text-zinc-500">
-          Demo listing — no payment is connected
+          Demo listing · hosted checkout in Paystack test mode
         </p>
+
+        {checkoutOpen && ready && range?.from && range?.to ? (
+          <GuestCheckout
+            staySlug={stay.slug}
+            guests={guests}
+            checkIn={range.from}
+            checkOut={range.to}
+            totalKobo={totalKobo}
+            onCancel={() => setCheckoutOpen(false)}
+          />
+        ) : null}
 
         {billableNights > 0 ? (
           <dl className="mt-4 space-y-2 border-t border-zinc-200 pt-4 text-[0.8125rem]">
@@ -335,9 +355,24 @@ export function BookingWidget({ stay }: { stay: Stay }) {
               {range?.from ? formatRange(range.from, range.to) : "Add your dates"}
             </p>
           </div>
-          <Button size="md" onClick={() => setCalendarOpen(true)}>
-            {ready ? "Reserve" : "Check dates"}
-          </Button>
+          <div className="flex items-center gap-2">
+            <a
+              href={chatHref(chatDetail)}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Book by chat with JosStay"
+              title="Book by chat with JosStay"
+              className="inline-flex size-9 items-center justify-center rounded-md border border-whatsapp-ink/25 bg-whatsapp-soft text-whatsapp-ink"
+            >
+              <MessageCircle className="size-4" aria-hidden="true" />
+            </a>
+            <Button
+              size="md"
+              onClick={() => (ready ? setCheckoutOpen(true) : setCalendarOpen(true))}
+            >
+              {ready ? "Reserve" : "Check dates"}
+            </Button>
+          </div>
         </div>
       </div>
     </>

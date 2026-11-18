@@ -309,6 +309,7 @@ Local file: `server/.env`. Production: Render dashboard, service rooted at `serv
 5. Set `REDIS_URL` and run `npm run verify:cache` for a set/get/delete round-trip.
 6. Run `npm run verify:api` for the public read routes and `npm run verify:booking` for the hold, race-lock and confirmation checks. Both write throwaway rows to the configured database and delete them on exit, so point them at a local throwaway database.
 7. Set `PAYSTACK_SECRET_KEY` to a throwaway `sk_test_` value and run `npm run verify:payments`. It injects a fake provider, so no live Paystack call is made; it checks hosted init inputs, the split fields, the subaccount gate, signature rejection, amount/currency checks and webhook replay idempotency, then removes its own rows. `PAYSTACK_ENV` must be `test` for a `sk_test_` key to pass the prefix guard.
+8. Run `npm run verify:guest`. It injects fake notification and payment clients and checks the receipt contract, the email-only hotel phone, the hotel confirmation email, WhatsApp opt-in, notification audit rows and provider-failure isolation. No real email, WhatsApp message or Paystack call is sent.
 
 Install once from the repo root: `npm install`. npm workspaces link `client`, `server` and `packages/shared` into a single `node_modules` and one lockfile.
 

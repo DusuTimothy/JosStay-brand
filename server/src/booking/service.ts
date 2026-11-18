@@ -35,6 +35,7 @@ type StoredBooking = {
   policyTemplateSnapshot: PolicyTemplate;
   policyDeadlineAt: Date | null;
   paystackReference: string | null;
+  whatsappOptIn: boolean;
   expiresAt: Date | null;
   createdAt: Date;
 };
@@ -118,6 +119,7 @@ export async function createBooking(input: CreateBooking): Promise<GuestBooking>
         hotelShareKobo: money.hotelShareKobo,
         policyTemplateSnapshot: policyTemplate,
         policyDeadlineAt,
+        whatsappOptIn: input.whatsappOptIn,
         expiresAt: holdExpiresAt,
       },
       { transaction },

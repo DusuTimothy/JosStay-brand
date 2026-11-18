@@ -90,7 +90,7 @@ const TYPE_SPECIMENS = [
   ["text-section", "Where you'll sleep", "Section — 22/28px, 700, -2%"],
   ["text-card", "Lamingo Skyline Suite", "Card title — 18px, 650, -1.5%"],
   ["text-body", "Every real listing will be inspected, photographed and power-tested before it goes live.", "Body — 16px / 1.6"],
-  ["text-body-sm", "Exact address and gate code are shared after your booking is confirmed.", "Body small — 15px / 1.55"],
+  ["text-body-sm", "Address and map pin are public; gate code arrives after confirmation.", "Body small — 15px / 1.55"],
   ["text-meta", "Not inspected — demo listing", "Meta — 13px / 1.45"],
 ];
 

@@ -5,6 +5,7 @@ import type { AddressInfo } from "node:net";
 import { closePool, getModels } from "../db/client.js";
 import { createApp } from "../index.js";
 import { getBookingByReference } from "../booking/service.js";
+import type { ConfirmationMessage, NotificationClient } from "../notifications/types.js";
 import type {
   InitializePaymentInput,
   PaymentClient,
@@ -27,6 +28,8 @@ const DENIED_KEYS = new Set([
   "hotel_share_kobo",
   "phoneEncrypted",
   "phone_encrypted",
+  "contactEmail",
+  "contact_email",
   "phone",
   "guestPhone",
   "guestEmail",
@@ -69,6 +72,12 @@ async function main(): Promise<void> {
   const verifiedAt = new Date();
 
   const captured: InitializePaymentInput[] = [];
+  const capturedNotifications: ConfirmationMessage[] = [];
+  const fakeNotifications: NotificationClient = {
+    async send(message) {
+      capturedNotifications.push(message);
+    },
+  };
   const fakeClient: PaymentClient = {
     async initialize(input) {
       captured.push(input);
@@ -105,6 +114,7 @@ async function main(): Promise<void> {
       lat: 9.9301,
       lng: 8.8901,
       phoneEncrypted: "internal-only-phone-value",
+      contactEmail: "hotel-internal@example.test",
       nightlyKobo,
       policyTemplate: "flexible",
       status: "published",
@@ -125,7 +135,10 @@ async function main(): Promise<void> {
     });
     created.roomId = room.get("id") as string;
 
-    server = createApp({ paymentClient: fakeClient }).listen(0, "127.0.0.1");
+    server = createApp({
+      paymentClient: fakeClient,
+      notificationClient: fakeNotifications,
+    }).listen(0, "127.0.0.1");
     await new Promise<void>((resolve) => server?.once("listening", resolve));
     const address = server.address() as AddressInfo;
     const baseUrl = `http://127.0.0.1:${address.port}`;
@@ -139,6 +152,11 @@ async function main(): Promise<void> {
         headers: { "content-type": "application/json" },
         body: JSON.stringify(body),
       });
+      return { status: response.status, body: await response.json() };
+    }
+
+    async function get(path: string): Promise<{ status: number; body: unknown }> {
+      const response = await fetch(`${baseUrl}${path}`);
       return { status: response.status, body: await response.json() };
     }
 
@@ -160,6 +178,7 @@ async function main(): Promise<void> {
       checkIn: string,
       checkOut: string,
       email: string,
+      whatsappOptIn = true,
     ): Promise<{ status: number; body: unknown }> {
       return post("/api/bookings", {
         guestName: "Payment Guest",
@@ -171,7 +190,7 @@ async function main(): Promise<void> {
         checkOut,
         guests: 2,
         termsAccepted: true,
-        whatsappOptIn: false,
+        whatsappOptIn,
       });
     }
 
@@ -252,6 +271,34 @@ async function main(): Promise<void> {
     assert.equal(confirmedRecord.expiresAt, null);
     assert.equal(await models.Hold.count({ where: { bookingId: confirmedRecord.id } }), 0);
 
+    assert.deepEqual(
+      capturedNotifications.map((message) => message.kind),
+      ["guest-email", "guest-whatsapp", "hotel-email"],
+    );
+    const guestEmail = capturedNotifications.find((m) => m.kind === "guest-email");
+    const guestWhatsApp = capturedNotifications.find((m) => m.kind === "guest-whatsapp");
+    const hotelEmail = capturedNotifications.find((m) => m.kind === "hotel-email");
+    assert.equal(guestEmail?.hotelPhoneIncluded, true);
+    assert.ok(guestEmail?.text.includes("internal-only-phone-value"));
+    assert.ok(guestEmail?.text.includes(firstReference));
+    assert.ok(guestEmail?.text.includes("9.9301,8.8901"));
+    assert.equal(guestWhatsApp?.hotelPhoneIncluded, false);
+    assert.equal(guestWhatsApp?.text.includes("internal-only-phone-value"), false);
+    assert.equal(hotelEmail?.guestContactIncluded, false);
+    assert.ok(hotelEmail?.text.includes("Payment Guest"));
+    assert.equal(hotelEmail?.text.includes("pay-a-"), false);
+    assert.equal(hotelEmail?.text.includes("+2348012345678"), false);
+    assert.ok(hotelEmail?.text.includes("Verify Room"));
+
+    const receipt = await get(`/api/bookings/${firstReference}/receipt`);
+    assert.equal(receipt.status, 200);
+    const receiptBody = receipt.body as Record<string, unknown>;
+    assert.equal(receiptBody.hotelName, `Payment Verify Hotel ${suffix}`);
+    assert.equal(receiptBody.address, "Demo address — exact address shared after booking");
+    assert.equal(receiptBody.lat, 9.9301);
+    assert.equal(receiptBody.lng, 8.8901);
+    assertNoPrivateKeys(receipt.body);
+
     const actionsBeforeReplay = (
       await models.AuditLog.findAll({
         where: { entityId: confirmedRecord.id },
@@ -274,6 +321,7 @@ async function main(): Promise<void> {
       await models.AuditLog.findAll({ where: { entityId: confirmedRecord.id } })
     ).map((row) => row.get("action"));
     assert.deepEqual(actionsAfterReplay, actionsBeforeReplay);
+    assert.equal(capturedNotifications.length, 3);
 
     const secondBooking = await bookBooking(clearFrom, clearTo, `pay-b-${suffix}@example.com`);
     assert.equal(secondBooking.status, 201);

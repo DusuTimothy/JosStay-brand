@@ -78,7 +78,7 @@ export type AreaView = Area & {
 
 const IMG = "/images/stays";
 
-const POLICY_VIEWS: Record<PolicyTemplate, PolicyView> = {
+export const POLICY_VIEWS: Record<PolicyTemplate, PolicyView> = {
   flexible: {
     template: "flexible",
     label: "Flexible",
@@ -127,7 +127,7 @@ const HOTEL_INPUTS = [
     slug: "rayfield-garden-apartment",
     name: "The Rayfield Garden Apartment",
     area: "Rayfield",
-    address: "Demo address — exact address shared after a confirmed booking",
+    address: "Demo address — real listings show the address and map pin publicly",
     lat: 9.9282,
     lng: 8.8911,
     nightlyKobo: 8_500_000,
@@ -138,7 +138,7 @@ const HOTEL_INPUTS = [
     slug: "lamingo-skyline-suite",
     name: "Lamingo Skyline Suite",
     area: "Lamingo",
-    address: "Demo address — exact address shared after a confirmed booking",
+    address: "Demo address — real listings show the address and map pin publicly",
     lat: 9.9156,
     lng: 8.8642,
     nightlyKobo: 6_200_000,
@@ -149,7 +149,7 @@ const HOTEL_INPUTS = [
     slug: "little-rayfield-courtyard",
     name: "Little Rayfield Courtyard",
     area: "Little Rayfield",
-    address: "Demo address — exact address shared after a confirmed booking",
+    address: "Demo address — real listings show the address and map pin publicly",
     lat: 9.9335,
     lng: 8.8768,
     nightlyKobo: 12_000_000,
@@ -160,7 +160,7 @@ const HOTEL_INPUTS = [
     slug: "bukuru-hillside-hotel",
     name: "Bukuru Hillside Hotel",
     area: "Bukuru",
-    address: "Demo address — exact address shared after a confirmed booking",
+    address: "Demo address — real listings show the address and map pin publicly",
     lat: 9.7894,
     lng: 8.8723,
     nightlyKobo: 4_800_000,
@@ -266,7 +266,7 @@ const LISTING_COPY: Record<string, ListingCopy> = {
     tagline: "Two-bedroom shortlet with 24/7 solar power",
     description:
       "A sample two-bedroom shortlet in the heart of Rayfield, five minutes from the Rayfield Resort roundabout. The power note shows how a tested backup would be described on a real listing. This is demo content: no inspection has taken place and the photos are illustrative.",
-    cleaningFee: 12_000,
+    cleaningFee: 0,
     guests: 4,
     bedrooms: 2,
     beds: 2,
@@ -321,7 +321,7 @@ const LISTING_COPY: Record<string, ListingCopy> = {
     tagline: "One-bedroom suite with hill views",
     description:
       "A sample one-bedroom suite on the Lamingo ridge, with views across the plateau. Built to show how a calm base for solo travellers and couples would read on a listing. Demo content only — no inspection has taken place.",
-    cleaningFee: 9_000,
+    cleaningFee: 0,
     guests: 2,
     bedrooms: 1,
     beds: 1,
@@ -354,7 +354,7 @@ const LISTING_COPY: Record<string, ListingCopy> = {
     tagline: "Three-bedroom family shortlet with courtyard",
     description:
       "A sample three-bedroom home built around a private courtyard — the kind of layout families book for visits and Christmas. The demo record shows how house rules and a policy template would appear. No inspection has taken place.",
-    cleaningFee: 18_000,
+    cleaningFee: 0,
     guests: 6,
     bedrooms: 3,
     beds: 4,

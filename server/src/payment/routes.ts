@@ -5,11 +5,16 @@ import {
   PaystackWebhookEnvelopeSchema,
 } from "@josstay/shared";
 import { HttpError, parseWith } from "../api/errors.js";
+import { notificationClient } from "../notifications/client.js";
+import type { NotificationClient } from "../notifications/types.js";
 import { paystackClient, type PaymentClient } from "./client.js";
 import { handleChargeSuccess, initializePayment } from "./service.js";
 import { verifyPaystackSignature } from "./signature.js";
 
-export function createPaymentRouter(client: PaymentClient = paystackClient): Router {
+export function createPaymentRouter(
+  client: PaymentClient = paystackClient,
+  notifications: NotificationClient = notificationClient,
+): Router {
   const router = Router();
 
   router.post("/payments/initialize", async (request: Request, response: Response) => {
@@ -42,7 +47,7 @@ export function createPaymentRouter(client: PaymentClient = paystackClient): Rou
     }
 
     const charge = parseWith(PaystackChargeSuccessSchema, parsed);
-    const result = await handleChargeSuccess(charge);
+    const result = await handleChargeSuccess(charge, notifications);
     response.json({ received: true, ...result });
   });
 

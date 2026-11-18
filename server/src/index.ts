@@ -3,9 +3,15 @@ import express, { type Express } from "express";
 import { errorHandler } from "./api/errors.js";
 import { createApiRouter } from "./api/routes.js";
 import { allowedOrigins, env } from "./env.js";
+import type { NotificationClient } from "./notifications/types.js";
 import type { PaymentClient } from "./payment/client.js";
 
-export function createApp(options: { paymentClient?: PaymentClient } = {}): Express {
+export function createApp(
+  options: {
+    paymentClient?: PaymentClient;
+    notificationClient?: NotificationClient;
+  } = {},
+): Express {
   const app = express();
 
   app.disable("x-powered-by");
@@ -29,7 +35,7 @@ export function createApp(options: { paymentClient?: PaymentClient } = {}): Expr
     });
   });
 
-  app.use("/api", createApiRouter(options.paymentClient));
+  app.use("/api", createApiRouter(options.paymentClient, options.notificationClient));
   app.use("/api", (_request, response) => {
     response.status(404).json({ error: "Not found" });
   });

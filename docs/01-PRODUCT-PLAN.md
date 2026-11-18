@@ -32,6 +32,8 @@ We are **not** a hotel chain, not a host directory, and not a guarantor of hotel
 | 5 | **No real hotels yet** | All listings ship in demo mode with visible labels. No invented ratings, counts or "Verified" claims. |
 | 6 | **All areas, supply-led** | Rayfield, Lamingo, Little Rayfield, Bukuru, Bodija, Jos City Centre, Terminus, Shere Hills and any new area. Areas are derived from hotel data — adding a hotel in a new area creates the page. |
 
+**Decision confirmed 18 Nov 2026:** the hotel's **address and map pin stay public** on the listing page. There is no useful reason to hide a hotel's location. The **only** field held back until a confirmed booking is the **hotel phone number**. The confirmation page, email and WhatsApp message repeat the address and pin for convenience and add the phone.
+
 **Unchanged and protected:** the entire UI, colour tokens, type system, bento gallery, range calendar, motion, component library and page layouts. Only content, data shape and new transactional screens change.
 
 ---
